@@ -1,0 +1,199 @@
+﻿CLIENTE - DetalleCliente
+
+@model VeterinariaWebApp.Models.Usuario.Cliente.Cliente
+
+@{
+    ViewData["Title"] = "DetalleCliente";
+    var recepcionistaId = Context.Session.GetInt32("RecepcionistaId");
+    var medicoId = Context.Session.GetInt32("MedicoId");
+
+    if (medicoId != null && medicoId != 0)
+    {
+        Layout = "~/Views/Shared/_LayoutVeterinario.cshtml";
+    }
+    else if (recepcionistaId != null && recepcionistaId != 0)
+    {
+        Layout = "~/Views/Shared/_LayoutRecepcionista.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    }
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+            <h2 class="card-title mb-0">
+                <i class="fas fa-user" style="margin-right: 15px;"></i>Detalle de Cliente
+            </h2>
+        </div>
+        <div class="card-body">
+            <h4 class="text-success mb-4">
+                <i class="fas fa-info-circle" style="margin-right: 15px;"></i>Información del Cliente
+            </h4>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-id-card me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.IdCliente)
+                </div>
+                <div class="col-md-9">
+                    <span class="badge bg-success text-white px-3 py-2">@Html.DisplayFor(model => model.IdCliente)</span>
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-user me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.NombreUsuario)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.NombreUsuario)
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-user me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.ApellidoUsuario)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.ApellidoUsuario)
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-birthday-cake me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.FechaNacimiento)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.FechaNacimiento)
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-address-card me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.TipoDocumento)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.TipoDocumento)
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-id-badge me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.NumeroDocumento)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.NumeroDocumento)
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3 fw-bold text-success d-flex align-items-center">
+                    <i class="fas fa-user-tag me-3" style="width: 25px; font-size: 1.1rem;"></i>
+                    @Html.DisplayNameFor(model => model.Rol)
+                </div>
+                <div class="col-md-9">
+                    @Html.DisplayFor(model => model.Rol)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-start mt-4">
+        <div class="btn-group" style="gap: 15px;">
+            @{
+                if (recepcionistaId != null && recepcionistaId != 0)
+                {
+                    <a asp-controller="Recepcionista" asp-action="listarClientes"
+                       class="btn btn-outline-success px-4">
+                        <i class="fas fa-arrow-left me-2"></i> Regresar
+                    </a>
+                }
+                else if (medicoId != null && medicoId != 0)
+                {
+                    <a asp-controller="Veterinario" asp-action="listaCitaPorVeterinarios" asp-route-ide_usr="@medicoId"
+                       class="btn btn-outline-success px-4">
+                        <i class="fas fa-arrow-left me-2"></i> Regresar
+                    </a>
+                }
+            }
+
+            <a asp-action="DetalleClientePDF" asp-route-id="@Model.IdCliente" class="btn btn-danger px-4">
+                <i class="fas fa-file-pdf me-2"></i> Exportar PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/images/clinic-background-blur.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Poppins', sans-serif;
+        color: #222;
+    }
+
+    .container {
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 40px 50px;
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        max-width: 950px;
+        margin: 60px auto;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #28a745, #34c759);
+        border: none;
+        color: white !important;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .card-body h4 {
+        color: #28a745;
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+
+    .row:hover {
+        background: rgba(40, 167, 69, 0.08);
+    }
+
+    .col-md-3 {
+        color: #19692c;
+    }
+
+    .btn-outline-success {
+        background: linear-gradient(135deg, #28a745, #34c759);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-success:hover {
+            background: linear-gradient(135deg, #218838, #2ebf4f);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(72, 187, 120, 0.6);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #d62828, #f94144);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 12px rgba(214, 40, 40, 0.4);
+    }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #b71c1c, #f94144);
+            box-shadow: 0 0 15px rgba(249, 65, 68, 0.6);
+            transform: translateY(-2px);
+        }
+</style>

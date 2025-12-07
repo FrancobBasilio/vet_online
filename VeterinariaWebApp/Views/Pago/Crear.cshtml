@@ -1,0 +1,197 @@
+﻿@model VeterinariaWebApp.Models.Pago.PagoO
+
+@{
+    ViewData["Title"] = "Crear Pago";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var clienteId = Context.Session.GetInt32("ClienteId");
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                <h2 class="card-title mb-0">
+                    <i class="fas fa-cash-register me-2"></i>Ingresar Datos de Pago
+                </h2>
+            </div>
+
+            <div class="card-body">
+                <form asp-action="Crear" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="MontoPago" class="form-label fw-bold text-success">
+                            <i class="fas fa-hand-holding-usd me-2"></i>@Html.DisplayNameFor(m => m.MontoPago)
+                        </label>
+                        <input asp-for="MontoPago" class="form-control" value="30.00" readonly />
+                        <span asp-validation-for="MontoPago" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TipoPago" class="form-label fw-bold text-success">
+                            <i class="fas fa-credit-card me-2"></i>@Html.DisplayNameFor(m => m.TipoPago)
+                        </label>
+                        @Html.DropDownListFor(model => model.TipoPago,
+                                 (SelectList)ViewBag.tipoPagos, "(Seleccione el método de pago)",
+                                 new { @class = "form-select custom-select", @id = "tipoPagoSelect" })
+                        <span asp-validation-for="TipoPago" class="text-danger"></span>
+                    </div>
+
+                    <div id="extraInputContainer" class="mb-3"></div>
+                    <div id="extraFields" class="mb-4"></div>
+
+                    <div class="d-flex justify-content-start mt-3">
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="fas fa-money-check-alt me-2"></i> Pagar
+                        </button>
+
+                        <a asp-controller="Cliente" asp-action="listaCitaPorCliente" asp-route-ide_usr="@clienteId"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const select = document.getElementById("tipoPagoSelect");
+            const extraFields = document.getElementById("extraFields");
+
+            function updateFields() {
+                const selected = select.options[select.selectedIndex].text.trim();
+                extraFields.innerHTML = "";
+
+                const tarjetas = ["VISA", "MASTERCARD", "AMEX", "DINERS CLUB"];
+                if (tarjetas.includes(selected)) {
+                    const extraInputs = `
+                        <div class="form-group mt-2">
+                            <label>Número de tarjeta</label>
+                            <input type="number" class="form-control" placeholder="0000-0000-0000-0000" />
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Fecha de caducidad</label>
+                            <input type="month" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="text" class="form-control" maxlength="4" placeholder="123" />
+                        </div>`;
+                    extraFields.innerHTML = extraInputs;
+                }
+            }
+
+            select.addEventListener("change", updateFields);
+            updateFields();
+        });
+    </script>
+}
+<style>
+    body {
+        background: linear-gradient(to right, #b8f2e6, #dfffea);
+        background-attachment: fixed;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card {
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        animation: fadeIn 0.7s ease-in-out;
+        border-top: 6px solid #28a745;
+    }
+
+    .card-header {
+        background: linear-gradient(90deg, #28a745, #00c97b, #28a745);
+        background-size: 200% 100%;
+        animation: moveGradient 5s infinite linear;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 10px; 
+        font-size: 1rem;
+        margin-bottom: 8px;
+        color: #1b6b3f;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border: 2px solid #c7e9ce;
+        padding: 10px 14px;
+        background-color: #f8fff9;
+        transition: all 0.3s ease;
+        width: 100%;
+        min-height: 42px;
+        font-size: 0.95rem;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+            background-color: #fff;
+        }
+
+    select.form-select {
+        white-space: normal;
+        height: auto;
+        padding-right: 35px;
+        line-height: 1.5;
+    }
+
+    option {
+        font-size: 0.95rem;
+    }
+
+    .btn-success {
+        background: linear-gradient(90deg, #28a745, #00c97b, #28a745);
+        background-size: 200% 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        animation: moveGradient 5s infinite linear;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes moveGradient {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+</style>

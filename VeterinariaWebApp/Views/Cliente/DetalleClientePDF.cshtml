@@ -1,0 +1,157 @@
+﻿@model VeterinariaWebApp.Models.Usuario.Cliente.Cliente
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Informe Detallado de Cliente - @Model.IdCliente</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #fafafa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #2c7be5;
+        }
+
+            .header h1 {
+                color: #2c7be5;
+                margin-bottom: 5px;
+                font-size: 24px;
+            }
+
+            .header p {
+                color: #666;
+                font-size: 14px;
+            }
+
+        .clinic-logo {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .details-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            color: #2c7be5;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            width: 140px;
+            color: #555;
+        }
+
+        .detail-value {
+            flex: 1;
+        }
+
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c7be5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .watermark {
+            opacity: 0.1;
+            position: fixed;
+            bottom: 50%;
+            right: 50%;
+            transform: translate(50%, 50%);
+            font-size: 120px;
+            color: #2c7be5;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="~/img/clinica.png" class="clinic-logo" alt="Logo Clínica">
+        <h1>Informe detallado de Cliente</h1>
+        <h2><strong>@Model.NombreUsuario @Model.ApellidoUsuario</strong></h2>
+        <p>MI VET ONLINE - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+
+    <div class="details-container">
+        <h2 class="section-title">Información de Cliente</h2>
+
+        <div class="detail-row">
+            <span class="detail-label">ID de Cliente : </span>
+            <span class="detail-value">@Model.IdCliente</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Nombre : </span>
+            <span class="detail-value">@Model.NombreUsuario</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Apellido : </span>
+            <span class="detail-value">@Model.ApellidoUsuario</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Fecha de Nacimiento : </span>
+            <span class="detail-value">@Model.FechaNacimiento</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Tipo Documento : </span>
+            <span class="detail-value">@Model.TipoDocumento</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Número Documento : </span>
+            <span class="detail-value">@Model.NumeroDocumento</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Rol : </span>
+            <span class="detail-value">@Model.Rol</span>
+        </div>
+    </div>
+
+    <div class="watermark">MI VET ONLINE</div>
+
+    <div class="footer">
+        <p>Este documento es una Información oficial confidencial generada automáticamente.</p>
+        <p>MI VET ONLINE - Todos los derechos reservados © @DateTime.Now.Year</p>
+    </div>
+</body>
+</html>

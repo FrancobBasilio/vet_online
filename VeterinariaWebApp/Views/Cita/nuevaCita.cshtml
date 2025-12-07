@@ -1,0 +1,103 @@
+﻿@model VeterinariaWebApp.Models.Cita.CitaO
+
+@{
+    ViewData["Title"] = "Nueva Cita";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var clienteId = Context.Session.GetInt32("ClienteId");
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+                <h2 class="card-title mb-0">
+                    <i class="fas fa-calendar-plus" style="margin-right: 15px;"></i>Nueva Cita
+                </h2>
+            </div>
+
+            <div class="card-body">
+                <form asp-action="nuevaCita">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="CalendarioCita" class="form-label fw-bold text-primary">
+                            <i class="fas fa-calendar-alt" style="margin-right: 8px;"></i>@Html.DisplayNameFor(m => m.CalendarioCita)
+                        </label>
+                        <input asp-for="CalendarioCita" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="CalendarioCita" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Consultorio" class="form-label fw-bold text-primary">
+                            <i class="fas fa-door-open" style="margin-right: 8px;"></i>@Html.DisplayNameFor(m => m.Consultorio)
+                        </label>
+                        <input asp-for="Consultorio" class="form-control" />
+                        <span asp-validation-for="Consultorio" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdVeterinario" class="form-label fw-bold text-primary">
+                            <i class="fas fa-user-md" style="margin-right: 8px;"></i>Veterinario
+                        </label>
+                        @Html.DropDownListFor(model => model.IdVeterinario,
+                        (IEnumerable<SelectListItem>)ViewBag.veterinarios,
+                                                "(Seleccione el Veterinario)",
+                                                new { @class = "form-select custom-select" })
+                        <span asp-validation-for="IdVeterinario" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdMascota" class="form-label fw-bold text-primary">
+                            <i class="fas fa-paw" style="margin-right: 8px;"></i>Mascota
+                        </label>
+                        @Html.DropDownListFor(model => model.IdMascota,
+                                                (IEnumerable<SelectListItem>)ViewBag.mascotas,
+                                                "(Seleccione su Mascota)",
+                                                new { @class = "form-select custom-select" })
+                        <span asp-validation-for="IdMascota" class="text-danger"></span>
+                    </div>
+
+                    <input asp-for="IdPago" class="form-control" hidden />
+
+                    <div class="d-flex justify-content-start mt-4">
+                        <button type="submit" class="btn btn-success" style="margin-right: 8px;">
+                            <i class="fas fa-save me-2"></i> Crear
+                        </button>
+                        <a asp-controller="Cliente" asp-action="listaCitaPorCliente" asp-route-ide_usr="@clienteId"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.querySelector("form").addEventListener("submit", function (e) {
+            const fechaInput = document.getElementById("CalendarioCita").value;
+            if (!fechaInput) {
+                alert("Por favor, selecciona una fecha y hora válida.");
+                e.preventDefault();
+                return;
+            }
+
+            const fechaSeleccionada = new Date(fechaInput);
+            const fechaActual = new Date();
+
+            if (fechaSeleccionada < fechaActual) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fecha inválida',
+                    text: 'No puedes seleccionar una fecha u hora pasada.',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
+    </script>
+}

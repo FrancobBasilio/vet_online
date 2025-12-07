@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Inicio - Veterinario";
+    Layout = "~/Views/Shared/_LayoutVeterinario.cshtml";
+    // La variable veterinarioId ya no se declara aquí.
+}
+
+<div class="row justify-content-center">
+    <!-- Encabezado -->
+    <div class="col-12 mb-4">
+        <div class="d-sm-flex align-items-center justify-content-between">
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-paw text-primary mr-2"></i>MI VET ONLINE
+            </h1>
+            <span class="badge badge-pill badge-light shadow-sm">
+                <i class="fas fa-user-md text-info mr-1"></i>
+                @* @($"{ViewBag.Veterinario?.NombreUsuario} {ViewBag.Veterinario?.ApellidoUsuario}") *@
+            </span>
+        </div>
+        <hr class="mt-2 mb-4 border-top-2 border-primary">
+    </div>
+
+    <!-- Tarjeta Citas Totales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <i class="fas fa-calendar-check mr-1"></i> Citas Totales
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.Stats.TotalCitas</div>
+                        <small class="text-muted">Este mes</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a href="@Url.Action("listaCitaPorVeterinarios", "Veterinario", new { ide_usr = Context.Session.GetInt32("VeterinarioId") })" class="small text-primary stretched-link">
+                    Ver todas <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Mascotas Atendidas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            <i class="fas fa-dog mr-1"></i> Mascotas Atendidas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.Stats.TotalMascotas</div>
+                        <small class="text-muted">Últimos 30 días</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-paw fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a href="@Url.Action("listaMascotaPorVeterinarios", "Veterinario", new { ide_usr = Context.Session.GetInt32("VeterinarioId") })" class="small text-success stretched-link">
+                    Ver listado <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Imagen destacada -->
+<div id="patient-animation" style="width: 300px; height: 300px; margin: 0 auto;"></div>
+
+<script>
+    var animation = lottie.loadAnimation({
+        container: document.getElementById("patient-animation"),
+        renderer: "svg",
+        loop: true,
+        autoplay: true,
+        path: "/img/DoctorAnimation.json"
+    });
+</script>

@@ -1,0 +1,162 @@
+﻿@model IEnumerable<VeterinariaWebApp.Models.Usuario.Cliente.Cliente>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Listado de Clientes - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #fafafa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #2c7be5;
+        }
+
+            .header h1 {
+                color: #2c7be5;
+                margin-bottom: 5px;
+                font-size: 24px;
+            }
+
+            .header p {
+                color: #666;
+                font-size: 14px;
+            }
+
+        .clinic-logo {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .details-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 45px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            color: #2c7be5;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .watermark {
+            opacity: 0.1;
+            position: fixed;
+            bottom: 50%;
+            right: 50%;
+            transform: translate(50%, 50%);
+            font-size: 120px;
+            color: #2c7be5;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #1c294e;
+            font-weight: 600;
+        }
+
+        th {
+            background-color: #2c7be5;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            border-color: black;
+        }
+
+        td {
+            padding: 10px;
+            text-align: left;
+            border-top: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="~/img/clinica.png" class="clinic-logo" alt="Logo Clínica">
+        <h1>Listado de Clientes</h1>
+        <p>MI VET ONLINE - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+
+    <div class="details-container container">
+        <h2 class="section-title">Información de los Clientes</h2>
+
+        <table class="table" width="100%" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.IdCliente)</th>
+                    <th>@Html.DisplayNameFor(model => model.NombreUsuario)</th>
+                    <th>@Html.DisplayNameFor(model => model.ApellidoUsuario)</th>
+                    <th>@Html.DisplayNameFor(model => model.FechaNacimiento)</th>
+                    <th>@Html.DisplayNameFor(model => model.TipoDocumento)</th>
+                    <th>@Html.DisplayNameFor(model => model.NumeroDocumento)</th>
+                    <th>@Html.DisplayNameFor(model => model.Rol)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.IdCliente)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NombreUsuario)</td>
+                        <td>@Html.DisplayFor(modelItem => item.ApellidoUsuario)</td>
+                        <td>@Html.DisplayFor(modelItem => item.FechaNacimiento)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TipoDocumento)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NumeroDocumento)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Rol)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="watermark">MI VET ONLINE</div>
+
+        <div class="footer">
+            <p>Este documento es un listado oficial generado automáticamente.</p>
+            <p>MI VET ONLINE - Todos los derechos reservados © @DateTime.Now.Year</p>
+        </div>
+    </div>
+</body>
+</html>

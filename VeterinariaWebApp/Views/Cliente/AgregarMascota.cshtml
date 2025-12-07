@@ -1,0 +1,138 @@
+﻿@model VeterinariaWebApp.Models.Mascota.Mascota
+@{
+    ViewData["Title"] = "Registrar Mascota";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<h2>Registrar Nueva Mascota</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-info">@ViewBag.Mensaje</div>
+}
+
+<form asp-action="AgregarMascota" method="post">
+    <div class="form-group">
+        <label>Nombre</label>
+        <input asp-for="Nombre" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Especie</label>
+        <input asp-for="Especie" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Raza</label>
+        <input asp-for="Raza" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input asp-for="FechaNacimiento" type="date" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-success mt-3">Registrar Mascota</button>
+</form>
+
+<style>
+    body {
+        background: linear-gradient(to right, #b8f2e6, #dfffea);
+        background-attachment: fixed;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    form {
+        background-color: #ffffff;
+        padding: 40px 45px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        max-width: 520px;
+        margin: 60px auto;
+        animation: fadeIn 0.6s ease-in-out;
+        border-top: 6px solid #28a745;
+    }
+
+    h2 {
+        text-align: center;
+        color: #28a745;
+        font-weight: 700;
+        margin-bottom: 30px;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    input.form-control {
+        border-radius: 10px;
+        border: 2px solid #c7e9ce;
+        padding: 10px 14px;
+        transition: all 0.3s ease;
+        font-size: 15px;
+        background-color: #f8fff9;
+    }
+
+        input.form-control:focus {
+            border-color: #28a745;
+            background-color: #fff;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+        }
+
+    .btn-success {
+        display: block;
+        width: 100%;
+        background: linear-gradient(90deg, #28a745, #00c97b, #28a745);
+        background-size: 200% 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        color: #fff;
+        transition: all 0.4s ease;
+        animation: moveGradient 4s infinite linear;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+    .alert {
+        text-align: center;
+        border-radius: 10px;
+        font-size: 0.95rem;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes moveGradient {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+</style>
