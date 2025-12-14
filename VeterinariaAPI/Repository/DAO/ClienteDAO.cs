@@ -4,6 +4,7 @@ using VeterinariaAPI.Models.Usuario.Cliente;
 using VeterinariaAPI.Models.Cita;
 using VeterinariaAPI.Models.Mascota;
 using VeterinariaAPI.Repository.Interfaces;
+using Microsoft.Data.SqlClient;
 
 namespace VeterinariaAPI.Repository.DAO;
 
@@ -171,7 +172,7 @@ public class ClienteDAO : ICliente
     {
         var listaCitaCliente = new List<CitaCliente>();
         using var cn = new SqlConnection(_connectionString);
-        using var cmd = new SqlCommand("sp_listarCitasPorCliente", cn);
+        using var cmd = new SqlCommand("sp_listarCitasPorClienteConHistorial", cn);
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.Parameters.AddWithValue("@ide_usr", ide_usr);
         cn.Open();
@@ -182,12 +183,22 @@ public class ClienteDAO : ICliente
             {
                 ide_cit = Convert.ToInt64(dr["ide_cit"]),
                 cal_cit = Convert.ToDateTime(dr["cal_cit"]),
-                con_cit = Convert.ToInt32(dr["con_cit"]), 
+                con_cit = Convert.ToInt32(dr["con_cit"]),
                 veterinario = dr["veterinario"].ToString(),
                 especialidad = dr["especialidad"].ToString(),
                 mascota = dr["mascota"].ToString(),
                 especie = dr["especie"].ToString(),
-                mon_pag = Convert.ToDecimal(dr["mon_pag"])
+                raza = dr["raza"].ToString(),
+                mon_pag = Convert.ToDecimal(dr["mon_pag"]),
+                metodo_pago = dr["metodo_pago"].ToString(),
+                est_cit = dr["est_cit"].ToString() ?? "P",
+                // Historial médico (puede ser NULL)
+                sintomas = dr["sintomas"] == DBNull.Value ? null : dr["sintomas"].ToString(),
+                diagnostico = dr["diagnostico"] == DBNull.Value ? null : dr["diagnostico"].ToString(),
+                tratamiento = dr["tratamiento"] == DBNull.Value ? null : dr["tratamiento"].ToString(),
+                medicamentos = dr["medicamentos"] == DBNull.Value ? null : dr["medicamentos"].ToString(),
+                observaciones = dr["observaciones"] == DBNull.Value ? null : dr["observaciones"].ToString(),
+                fecha_atencion = dr["fecha_atencion"] == DBNull.Value ? null : Convert.ToDateTime(dr["fecha_atencion"])
             });
         }
         return listaCitaCliente;
@@ -281,7 +292,7 @@ public class ClienteDAO : ICliente
         try
         {
             cn.Open();
-       
+
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {

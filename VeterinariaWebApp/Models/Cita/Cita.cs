@@ -16,9 +16,22 @@ public class Cita
     [DisplayName("Veterinario")]
     public string? NombreVeterinario { get; set; }
 
-    [DisplayName("Mascota")] 
+    [DisplayName("Mascota")]
     public string? NombreMascota { get; set; }
 
     [DisplayName("Precio")]
     public decimal MontoPago { get; set; }
+
+    [DisplayName("Estado")]
+    public string EstadoCita { get; set; } = "P"; // P=Pendiente, E=EnAtención, A=Atendida, C=Cancelada
+
+    // Propiedad calculada para mostrar el estado en texto
+    public string EstadoDescripcion => EstadoCita switch
+    {
+        "P" => "Pendiente",
+        "E" => "En Atención",
+        "A" => "Atendida",
+        "C" => "Cancelada",
+        _ => "Desconocido"
+    };
 }

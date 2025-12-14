@@ -70,5 +70,45 @@ public class CitaController : ControllerBase
         return Ok(lista);
     }
 
+    // Endpoint para actualizar el estado de una cita
+    [HttpPut("actualizarEstado/{id}")]
+    public async Task<ActionResult<string>> ActualizarEstadoCita(long id, [FromQuery] string estado)
+    {
+        // Validar que el estado sea válido
+        var estadosValidos = new[] { "P", "E", "A", "C" };
+        if (!estadosValidos.Contains(estado.ToUpper()))
+        {
+            return BadRequest("Estado no válido. Use: P (Pendiente), E (En Atención), A (Atendida), C (Cancelada)");
+        }
 
+        var mensaje = await Task.Run(() => new CitaDAO().ActualizarEstadoCita(id, estado.ToUpper()));
+        return Ok(new { success = true, message = mensaje });
+    }
+
+    // ==================== HISTORIAL MÉDICO ====================
+
+    // Agregar historial médico (llamado al finalizar atención)
+    [HttpPost("agregarHistorial")]
+    public async Task<ActionResult<string>> AgregarHistorialMedico([FromBody] HistorialMedicoDTO dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Diagnostico) || string.IsNullOrWhiteSpace(dto.Tratamiento))
+        {
+            return BadRequest("Diagnóstico y tratamiento son obligatorios");
+        }
+
+        var mensaje = await Task.Run(() => new CitaDAO().AgregarHistorialMedico(dto));
+        return Ok(new { success = true, message = mensaje });
+    }
+
+    // Obtener historial médico de una cita
+    [HttpGet("historial/{idCita}")]
+    public async Task<ActionResult<HistorialMedico>> ObtenerHistorialPorCita(long idCita)
+    {
+        var historial = await Task.Run(() => new CitaDAO().ObtenerHistorialPorCita(idCita));
+        if (historial == null)
+        {
+            return Ok(new { existe = false, message = "No hay historial médico para esta cita" });
+        }
+        return Ok(historial);
+    }
 }

@@ -1,0 +1,1051 @@
+USE BD_MiVetOnline
+GO
+
+-- =============================================
+-- CLIENTE
+-- =============================================
+
+-- Agregar cliente
+CREATE PROC sp_agregarCliente(
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT
+)
+AS
+BEGIN
+    INSERT INTO usuario (cor_usr, pwd_usr, nom_usr, ape_usr, num_doc, fna_usr, ide_doc, ide_rol)
+    VALUES (@cor, @pwd, @nom, @ape, @ndo, @fna, @doc, 1);
+    INSERT INTO cliente (ide_usr)
+    VALUES (SCOPE_IDENTITY());
+END
+GO
+
+-- Listar clientes (Frontend)
+CREATE PROC sp_listarClientesFront
+AS
+BEGIN
+    SELECT 
+        c.ide_cli,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        r.nom_rol
+    FROM cliente AS c
+    JOIN usuario u ON u.ide_usr = c.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles r ON u.ide_rol = r.ide_rol
+END
+GO
+
+-- Listar clientes (Backend)
+CREATE PROC sp_listarClientesBack
+AS
+BEGIN
+    SELECT 
+        c.ide_usr,
+        c.ide_cli,
+        u.cor_usr,
+        u.pwd_usr,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        u.num_doc,
+        u.ide_doc,
+        u.ide_rol
+    FROM cliente AS c
+    JOIN usuario u ON u.ide_usr = c.ide_usr
+END
+GO
+
+-- Actualizar cliente
+CREATE PROC sp_actualizarCliente(
+    @id BIGINT,
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT
+)
+AS
+BEGIN
+    UPDATE usuario
+    SET 
+        cor_usr = @cor,
+        pwd_usr = @pwd,
+        nom_usr = @nom,
+        ape_usr = @ape,
+        num_doc = @ndo,
+        fna_usr = @fna,
+        ide_doc = @doc
+    WHERE ide_usr = (SELECT c.ide_usr FROM cliente c WHERE c.ide_cli = @id)
+END
+GO
+
+-- Buscar cliente
+CREATE PROC sp_buscarCliente(
+    @id BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cli,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        ro.nom_rol
+    FROM cliente AS c
+    JOIN usuario u ON u.ide_usr = c.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles ro ON u.ide_rol = ro.ide_rol
+    WHERE c.ide_cli = @id
+END
+GO
+
+-- Eliminar cliente
+CREATE PROC sp_eliminarCliente(
+    @id BIGINT
+)
+AS
+BEGIN
+    DELETE FROM cliente WHERE ide_cli = @id
+END
+GO
+
+-- Listar citas por cliente (CON ESTADO)
+CREATE PROC sp_listarCitasPorCliente(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        CONCAT(uv.nom_usr, ' ', uv.ape_usr) AS veterinario,
+        e.nom_esp AS especialidad,
+        m.nom_mas AS mascota,
+        m.esp_mas AS especie,
+        p.mon_pag,
+        po.nom_pay,
+        c.est_cit
+    FROM cita c
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN cliente cli ON cli.ide_cli = m.ide_cli
+    JOIN veterinario v ON v.ide_vet = c.ide_vet
+    JOIN especialidad e ON e.ide_esp = v.ide_esp
+    JOIN usuario uv ON uv.ide_usr = v.ide_usr
+    JOIN pago p ON p.ide_pag = c.ide_pag
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    WHERE cli.ide_usr = @ide_usr
+    ORDER BY c.cal_cit DESC
+END
+GO
+
+-- =============================================
+-- MASCOTA
+-- =============================================
+
+-- Agregar mascota
+CREATE PROC sp_agregarMascota(
+    @nombre VARCHAR(50),
+    @especie VARCHAR(50),
+    @raza VARCHAR(50),
+    @fecha_nac DATE,
+    @id_usuario BIGINT
+)
+AS
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM usuario u
+        JOIN roles r ON u.ide_rol = r.ide_rol
+        WHERE u.ide_usr = @id_usuario AND r.nom_rol = 'Cliente'
+    )
+    BEGIN
+        RAISERROR('El usuario no es un cliente válido.', 16, 1)
+        RETURN
+    END
+
+    DECLARE @id_cliente BIGINT
+    SELECT @id_cliente = ide_cli FROM cliente WHERE ide_usr = @id_usuario
+
+    IF @id_cliente IS NULL
+    BEGIN
+        RAISERROR('No se encontró el cliente asociado al usuario.', 16, 1)
+        RETURN
+    END
+
+    INSERT INTO mascota (nom_mas, esp_mas, raz_mas, fna_mas, ide_cli)
+    VALUES (@nombre, @especie, @raza, @fecha_nac, @id_cliente)
+END
+GO
+
+-- Listar mascotas por cliente
+CREATE PROC sp_listarMascotasPorCliente(
+    @id_usuario BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        m.ide_mas,
+        m.nom_mas AS Nombre,
+        m.esp_mas AS Especie,
+        m.raz_mas AS Raza,
+        m.fna_mas AS FechaNacimiento
+    FROM mascota m
+    JOIN cliente c ON m.ide_cli = c.ide_cli
+    WHERE c.ide_usr = @id_usuario
+    ORDER BY m.nom_mas
+END
+GO
+
+-- Actualizar mascota
+CREATE PROC sp_actualizarMascota(
+    @id_mascota BIGINT,
+    @nombre VARCHAR(50),
+    @especie VARCHAR(50),
+    @raza VARCHAR(50),
+    @fecha_nac DATE
+)
+AS
+BEGIN
+    UPDATE mascota
+    SET 
+        nom_mas = @nombre,
+        esp_mas = @especie,
+        raz_mas = @raza,
+        fna_mas = @fecha_nac
+    WHERE ide_mas = @id_mascota;
+END
+GO
+
+-- Eliminar mascota
+CREATE PROC sp_eliminarMascota(
+    @id_mascota BIGINT
+)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM cita WHERE ide_mas = @id_mascota)
+    BEGIN
+        SELECT 'No se puede eliminar la mascota porque tiene citas asociadas.' AS Mensaje;
+        RETURN;
+    END
+
+    DELETE FROM mascota WHERE ide_mas = @id_mascota;
+    SELECT 'Mascota eliminada correctamente.' AS Mensaje;
+END
+GO
+
+-- =============================================
+-- USUARIO / LOGIN
+-- =============================================
+
+-- Verificar login
+CREATE PROC sp_verificarLogin(
+    @correo VARCHAR(100),
+    @contraseña VARCHAR(150)
+)
+AS
+BEGIN
+    SELECT r.nom_rol
+    FROM usuario u
+    JOIN roles r ON r.ide_rol = u.ide_rol
+    WHERE u.cor_usr = @correo AND u.pwd_usr = @contraseña
+END
+GO
+
+-- Obtener ID usuario
+CREATE PROC sp_obtenerIdUsuario(
+    @correo VARCHAR(100)
+)
+AS
+BEGIN
+    SELECT u.ide_usr
+    FROM usuario u
+    WHERE u.cor_usr = @correo
+END
+GO
+
+-- Listar documentos
+CREATE PROC sp_listarDocumentos
+AS
+BEGIN
+    SELECT * FROM user_doc
+END
+GO
+
+-- =============================================
+-- PAGOS
+-- =============================================
+
+-- Listar opciones de pago
+CREATE PROC sp_listarPaymentOptions
+AS
+BEGIN
+    SELECT * FROM pay_opts
+END
+GO
+
+-- Agregar pago
+CREATE PROC sp_agregarPago(
+    @hora DATETIME,
+    @monto SMALLMONEY,
+    @tipopago BIGINT,
+    @usuario BIGINT
+)
+AS
+BEGIN
+    INSERT INTO pago (hor_pag, mon_pag, ide_pay, ide_cli)
+    VALUES (
+        @hora, 
+        @monto,
+        @tipopago, 
+        (SELECT c.ide_cli FROM cliente c WHERE c.ide_usr = @usuario)
+    );
+    SELECT SCOPE_IDENTITY() AS IdPago;
+END
+GO
+
+-- Obtener pago por ID
+CREATE PROC sp_obtenerPagoPorId(
+    @id BIGINT
+)
+AS
+BEGIN
+    SELECT * FROM pago WHERE ide_pag = @id
+END
+GO
+
+-- Obtener pago por ID (Frontend)
+CREATE PROC sp_obtenerPagoPorIdFront(
+    @id BIGINT
+)
+AS
+BEGIN
+    SELECT
+        pa.ide_pag,
+        pa.hor_pag,
+        pa.mon_pag,
+        po.nom_pay,
+        CONCAT(u.nom_usr, ' ', u.ape_usr) AS NOMBRE,
+        u.cor_usr
+    FROM pago pa
+    JOIN cliente c ON pa.ide_cli = c.ide_cli
+    JOIN pay_opts po ON pa.ide_pay = po.ide_pay
+    JOIN usuario u ON c.ide_usr = u.ide_usr
+    WHERE pa.ide_pag = @id
+END
+GO
+
+-- Listar pagos
+CREATE PROC sp_listarPagos
+AS
+BEGIN
+    SELECT 
+        p.ide_pag,
+        p.hor_pag,
+        p.mon_pag,
+        po.nom_pay,
+        u.cor_usr,
+        CONCAT(u.nom_usr, ' ', u.ape_usr) AS nombre_completo,
+        u.num_doc
+    FROM pago p
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    JOIN cliente c ON c.ide_cli = p.ide_cli
+    JOIN usuario u ON u.ide_usr = c.ide_usr
+END
+GO
+
+-- Listar pagos por cliente
+CREATE PROC sp_listarPagosPorCliente(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        p.ide_pag,
+        p.hor_pag,
+        p.mon_pag,
+        po.nom_pay,
+        u.cor_usr,
+        CONCAT(u.nom_usr, ' ', u.ape_usr) AS nombre_completo,
+        u.num_doc
+    FROM pago p
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    JOIN cliente c ON c.ide_cli = p.ide_cli
+    JOIN usuario u ON u.ide_usr = c.ide_usr
+    WHERE c.ide_usr = @ide_usr
+END
+GO
+
+-- Actualizar pago
+CREATE PROC sp_actualizarPago(
+    @cliente BIGINT,
+    @ide_pag BIGINT,
+    @hor_pag DATETIME,
+    @mon_pag SMALLMONEY,
+    @ide_pay BIGINT
+)
+AS
+BEGIN
+    UPDATE pago
+    SET 
+        hor_pag = @hor_pag,
+        mon_pag = @mon_pag,
+        ide_pay = @ide_pay,
+        ide_cli = @cliente
+    WHERE ide_pag = @ide_pag
+END
+GO
+
+-- Eliminar pago
+CREATE PROC sp_eliminarPago(
+    @id BIGINT
+)
+AS
+BEGIN
+    DELETE FROM pago WHERE ide_pag = @id
+END
+GO
+
+-- =============================================
+-- RECEPCIONISTA
+-- =============================================
+
+-- Agregar recepcionista
+CREATE PROC sp_agregarRecepcionista(
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT,
+    @sue SMALLMONEY
+)
+AS
+BEGIN
+    INSERT INTO usuario (cor_usr, pwd_usr, nom_usr, ape_usr, num_doc, fna_usr, ide_doc, ide_rol)
+    VALUES (@cor, @pwd, @nom, @ape, @ndo, @fna, @doc, 3);
+    INSERT INTO recepcionista (sue_rep, ide_usr)
+    VALUES (@sue, SCOPE_IDENTITY());
+END
+GO
+
+-- Listar recepcionistas (Frontend)
+CREATE PROC sp_listarRecepcionistasFront
+AS
+BEGIN
+    SELECT 
+        r.ide_rep,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        ro.nom_rol,
+        r.sue_rep
+    FROM recepcionista r
+    JOIN usuario u ON u.ide_usr = r.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles ro ON u.ide_rol = ro.ide_rol
+END
+GO
+
+-- Listar recepcionistas (Backend)
+CREATE PROC sp_listarRecepcionistasBack
+AS
+BEGIN
+    SELECT 
+        r.ide_usr,
+        r.ide_rep,
+        r.sue_rep,
+        u.cor_usr,
+        u.pwd_usr,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        u.num_doc,
+        u.ide_doc,
+        u.ide_rol
+    FROM recepcionista r
+    JOIN usuario u ON u.ide_usr = r.ide_usr
+END
+GO
+
+-- Buscar recepcionista por ID
+CREATE PROC sp_buscarRecepcionistaPorId(@id BIGINT)
+AS
+BEGIN
+    SELECT 
+        r.ide_rep,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        ro.nom_rol,
+        r.sue_rep
+    FROM recepcionista r
+    JOIN usuario u ON u.ide_usr = r.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles ro ON u.ide_rol = ro.ide_rol
+    WHERE r.ide_rep = @id
+END
+GO
+
+-- Actualizar recepcionista
+CREATE PROC sp_actualizarRecepcionista(
+    @id BIGINT,
+    @sue SMALLMONEY,
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT
+)
+AS
+BEGIN
+    UPDATE recepcionista SET sue_rep = @sue WHERE ide_rep = @id;
+    UPDATE usuario
+    SET 
+        cor_usr = @cor,
+        pwd_usr = @pwd,
+        nom_usr = @nom,
+        ape_usr = @ape,
+        num_doc = @ndo,
+        fna_usr = @fna,
+        ide_doc = @doc
+    WHERE ide_usr = (SELECT r.ide_usr FROM recepcionista r WHERE r.ide_rep = @id)
+END
+GO
+
+-- Eliminar recepcionista
+CREATE PROC sp_eliminarRecepcionista(@id BIGINT)
+AS
+BEGIN
+    DELETE FROM recepcionista WHERE ide_rep = @id
+END
+GO
+
+-- =============================================
+-- VETERINARIO
+-- =============================================
+
+-- Agregar veterinario
+CREATE PROC sp_agregarVeterinario(
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT,
+    @sue SMALLMONEY,
+    @esp BIGINT
+)
+AS
+BEGIN
+    INSERT INTO usuario (cor_usr, pwd_usr, nom_usr, ape_usr, num_doc, fna_usr, ide_doc, ide_rol)
+    VALUES (@cor, @pwd, @nom, @ape, @ndo, @fna, @doc, 2);
+    INSERT INTO veterinario (sue_vet, ide_esp, ide_usr)
+    VALUES (@sue, @esp, SCOPE_IDENTITY())
+END
+GO
+
+-- Listar veterinarios (Frontend)
+CREATE PROC sp_listarVeterinariosFront
+AS
+BEGIN
+    SELECT 
+        v.ide_vet,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        ro.nom_rol,
+        v.sue_vet,
+        e.nom_esp
+    FROM veterinario v
+    JOIN usuario u ON u.ide_usr = v.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles ro ON u.ide_rol = ro.ide_rol
+    JOIN especialidad e ON e.ide_esp = v.ide_esp
+END
+GO
+
+-- Listar veterinarios (Backend)
+CREATE PROC sp_listarVeterinariosBack
+AS
+BEGIN
+    SELECT 
+        v.ide_usr,
+        v.ide_vet,
+        v.sue_vet,
+        v.ide_esp,
+        u.cor_usr,
+        u.pwd_usr,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        u.num_doc,
+        u.ide_doc,
+        u.ide_rol
+    FROM veterinario v
+    JOIN usuario u ON u.ide_usr = v.ide_usr
+END
+GO
+
+-- Buscar veterinario por ID
+CREATE PROC sp_buscarVeterinarioPorId(@id BIGINT)
+AS
+BEGIN
+    SELECT 
+        v.ide_vet,
+        u.nom_usr,
+        u.ape_usr,
+        u.fna_usr,
+        ud.nom_doc,
+        u.num_doc,
+        ro.nom_rol,
+        v.sue_vet,
+        e.nom_esp
+    FROM veterinario v
+    JOIN usuario u ON u.ide_usr = v.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = u.ide_doc
+    JOIN roles ro ON u.ide_rol = ro.ide_rol
+    JOIN especialidad e ON e.ide_esp = v.ide_esp
+    WHERE v.ide_vet = @id
+END
+GO
+
+-- Actualizar veterinario
+CREATE PROC sp_actualizarVeterinario(
+    @id BIGINT,
+    @sue SMALLMONEY,
+    @esp BIGINT,
+    @cor VARCHAR(100),
+    @pwd VARCHAR(150),
+    @nom VARCHAR(100),
+    @ape VARCHAR(100),
+    @ndo VARCHAR(12),
+    @fna DATE,
+    @doc BIGINT
+)
+AS
+BEGIN
+    UPDATE veterinario SET sue_vet = @sue, ide_esp = @esp WHERE ide_vet = @id;
+    UPDATE usuario
+    SET 
+        cor_usr = @cor,
+        pwd_usr = @pwd,
+        nom_usr = @nom,
+        ape_usr = @ape,
+        num_doc = @ndo,
+        fna_usr = @fna,
+        ide_doc = @doc
+    WHERE ide_usr = (SELECT v.ide_usr FROM veterinario v WHERE v.ide_vet = @id)
+END
+GO
+
+-- Eliminar veterinario
+CREATE PROC sp_eliminarVeterinario(@id BIGINT)
+AS
+BEGIN
+    DELETE FROM veterinario WHERE ide_vet = @id
+END
+GO
+
+-- Listar especialidades
+CREATE PROC sp_listarEspecialidad
+AS
+BEGIN
+    SELECT * FROM especialidad
+END
+GO
+
+-- Listar citas por veterinario (CON ESTADO)
+CREATE PROC sp_listarCitasPorVeterinario(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        m.nom_mas AS mascota,
+        m.esp_mas AS especie,
+        cliu.num_doc AS doc_dueño,
+        CONCAT(cliu.nom_usr, ' ', cliu.ape_usr) AS nombre_dueño,
+        p.mon_pag,
+        po.nom_pay,
+        c.est_cit
+    FROM cita c
+    JOIN veterinario v ON v.ide_vet = c.ide_vet
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN cliente cli ON cli.ide_cli = m.ide_cli
+    JOIN usuario cliu ON cliu.ide_usr = cli.ide_usr
+    JOIN pago p ON p.ide_pag = c.ide_pag
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    WHERE v.ide_usr = @ide_usr
+    ORDER BY c.cal_cit DESC
+END
+GO
+
+-- Totales por veterinario
+CREATE PROC sp_totalesPorVeterinario(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    DECLARE @ide_vet BIGINT
+    SELECT @ide_vet = v.ide_vet FROM veterinario v WHERE v.ide_usr = @ide_usr
+
+    SELECT 
+        (SELECT COUNT(*) FROM cita c WHERE c.ide_vet = @ide_vet) AS total_citas,
+        (SELECT COUNT(DISTINCT c.ide_mas) FROM cita c WHERE c.ide_vet = @ide_vet) AS total_mascotas
+END
+GO
+
+-- Listar mascotas por veterinario
+CREATE PROC sp_listarMascotasPorVeterinario(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT DISTINCT
+        m.ide_mas,
+        m.nom_mas AS Mascota,
+        m.esp_mas AS Especie,
+        m.raz_mas AS Raza,
+        cliu.num_doc AS Doc_Dueño,
+        cliu.fna_usr AS Fec_Nac_Dueño,
+        ud.nom_doc AS Tipo_Doc,
+        COUNT(c.ide_cit) OVER (PARTITION BY m.ide_mas) AS Total_Citas
+    FROM veterinario v
+    JOIN cita c ON c.ide_vet = v.ide_vet
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN cliente cli ON cli.ide_cli = m.ide_cli
+    JOIN usuario cliu ON cliu.ide_usr = cli.ide_usr
+    JOIN user_doc ud ON ud.ide_doc = cliu.ide_doc
+    WHERE v.ide_usr = @ide_usr
+END
+GO
+
+-- =============================================
+-- CITA
+-- =============================================
+
+-- Listar citas (Backend)
+CREATE PROC sp_listarCitasBack
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        c.ide_vet,
+        c.ide_mas,
+        c.ide_pag,
+        c.est_cit
+    FROM cita c
+    ORDER BY c.cal_cit DESC
+END
+GO
+
+-- Listar citas (Frontend)
+CREATE PROC sp_listarCitasFront
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        CONCAT(uv.nom_usr, ' ', uv.ape_usr) AS NombreVeterinario,
+        m.nom_mas AS NombreMascota,
+        pg.mon_pag,
+        c.est_cit
+    FROM cita c
+    JOIN veterinario v ON v.ide_vet = c.ide_vet
+    JOIN usuario uv ON uv.ide_usr = v.ide_usr
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN pago pg ON c.ide_pag = pg.ide_pag
+    ORDER BY 
+        CASE WHEN CAST(c.cal_cit AS DATE) = CAST(GETDATE() AS DATE) THEN 0 ELSE 1 END,
+        c.cal_cit DESC
+END
+GO
+
+-- Agregar cita (CON ESTADO PENDIENTE)
+CREATE PROC sp_agregarCita(
+    @calendario DATETIME,
+    @consultorio BIGINT,
+    @veterinario BIGINT,
+    @mascota BIGINT,
+    @pago BIGINT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    INSERT INTO cita (cal_cit, con_cit, ide_vet, ide_mas, ide_pag, est_cit)
+    VALUES (@calendario, @consultorio, @veterinario, @mascota, @pago, 'P');
+END
+GO
+
+-- Actualizar cita
+CREATE PROC sp_actualizarCita(
+    @idCita BIGINT,
+    @calendario DATETIME,
+    @consultorio INT,
+    @veterinario BIGINT,
+    @mascota BIGINT,
+    @pago BIGINT
+)
+AS
+BEGIN
+    UPDATE cita
+    SET 
+        cal_cit = @calendario,
+        con_cit = @consultorio,
+        ide_vet = @veterinario,
+        ide_mas = @mascota,
+        ide_pag = @pago
+    WHERE ide_cit = @idCita
+END
+GO
+
+-- Actualizar estado de cita
+CREATE PROC sp_actualizarEstadoCita(
+    @idCita BIGINT,
+    @estado CHAR(1)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    UPDATE cita
+    SET est_cit = @estado
+    WHERE ide_cit = @idCita;
+END
+GO
+
+-- Eliminar cita
+CREATE PROC sp_eliminarCita(@idCita BIGINT)
+AS
+BEGIN
+    DELETE FROM cita WHERE ide_cit = @idCita
+END
+GO
+
+-- Obtener citas por fecha
+CREATE PROC sp_obtenerCitasPorFecha(
+    @dia INT,
+    @mes INT,
+    @año INT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        CONCAT(uv.nom_usr, ' ', uv.ape_usr) AS Veterinario,
+        m.nom_mas AS Mascota,
+        pg.mon_pag,
+        c.est_cit
+    FROM cita c
+    JOIN veterinario v ON v.ide_vet = c.ide_vet
+    JOIN usuario uv ON uv.ide_usr = v.ide_usr
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN pago pg ON c.ide_pag = pg.ide_pag
+    WHERE
+        DAY(c.cal_cit) = @dia 
+        AND MONTH(c.cal_cit) = @mes 
+        AND YEAR(c.cal_cit) = @año
+END
+GO
+
+-- Buscar cita por ID
+CREATE PROC sp_buscarCitaPorId(
+    @idCita BIGINT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        c.ide_vet,
+        c.ide_mas,
+        c.ide_pag,
+        c.est_cit,
+        CONCAT(uv.nom_usr, ' ', uv.ape_usr) AS NombreVeterinario,
+        m.nom_mas AS NombreMascota,
+        p.mon_pag
+    FROM cita c
+    INNER JOIN veterinario v ON c.ide_vet = v.ide_vet
+    INNER JOIN usuario uv ON v.ide_usr = uv.ide_usr
+    INNER JOIN mascota m ON c.ide_mas = m.ide_mas
+    INNER JOIN pago p ON c.ide_pag = p.ide_pag
+    WHERE c.ide_cit = @idCita;
+END
+GO
+
+-- =====================================================
+-- SP PARA AGREGAR HISTORIAL MÉDICO
+-- =====================================================
+
+CREATE PROC sp_agregarHistorialMedico(
+    @ide_cit BIGINT,
+    @sintomas NVARCHAR(500),
+    @diagnostico NVARCHAR(500),
+    @tratamiento NVARCHAR(500),
+    @medicamentos NVARCHAR(500),
+    @observaciones NVARCHAR(1000)
+)
+AS
+BEGIN
+    -- Verificar si ya existe historial para esta cita
+    IF EXISTS (SELECT 1 FROM historial_medico WHERE ide_cit = @ide_cit)
+    BEGIN
+        -- Actualizar existente
+        UPDATE historial_medico
+        SET sintomas = @sintomas,
+            diagnostico = @diagnostico,
+            tratamiento = @tratamiento,
+            medicamentos = @medicamentos,
+            observaciones = @observaciones,
+            fecha_atencion = GETDATE()
+        WHERE ide_cit = @ide_cit
+    END
+    ELSE
+    BEGIN
+        -- Insertar nuevo
+        INSERT INTO historial_medico (ide_cit, sintomas, diagnostico, tratamiento, medicamentos, observaciones)
+        VALUES (@ide_cit, @sintomas, @diagnostico, @tratamiento, @medicamentos, @observaciones)
+    END
+END
+GO
+
+-- SP PARA OBTENER HISTORIAL POR CITA
+-- =====================================================
+
+
+CREATE PROC sp_obtenerHistorialPorCita(
+    @ide_cit BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        h.ide_his,
+        h.ide_cit,
+        h.sintomas,
+        h.diagnostico,
+        h.tratamiento,
+        h.medicamentos,
+        h.observaciones,
+        h.fecha_atencion
+    FROM historial_medico h
+    WHERE h.ide_cit = @ide_cit
+END
+GO
+
+-- SP PARA LISTAR CITAS DEL CLIENTE CON HISTORIAL
+-- =====================================================
+
+CREATE PROC sp_listarCitasPorClienteConHistorial(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        c.est_cit,
+        m.nom_mas AS mascota,
+        m.esp_mas AS especie,
+        m.raz_mas AS raza,
+        CONCAT(vu.nom_usr, ' ', vu.ape_usr) AS veterinario,
+        e.nom_esp AS especialidad,
+        p.mon_pag,
+        po.nom_pay AS metodo_pago,
+        -- Datos del historial médico (NULL si no existe)
+        h.sintomas,
+        h.diagnostico,
+        h.tratamiento,
+        h.medicamentos,
+        h.observaciones,
+        h.fecha_atencion
+    FROM cliente cli
+    JOIN mascota m ON m.ide_cli = cli.ide_cli
+    JOIN cita c ON c.ide_mas = m.ide_mas
+    JOIN veterinario v ON v.ide_vet = c.ide_vet
+    JOIN usuario vu ON vu.ide_usr = v.ide_usr
+    JOIN especialidad e ON e.ide_esp = v.ide_esp
+    JOIN pago p ON p.ide_pag = c.ide_pag
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    LEFT JOIN historial_medico h ON h.ide_cit = c.ide_cit
+    WHERE cli.ide_usr = @ide_usr
+    ORDER BY c.cal_cit DESC
+END
+GO
+
+--  SP PARA LISTAR MASCOTAS ATENDIDAS CON HISTORIAL
+-- =====================================================
+
+CREATE PROC sp_listarMascotasAtendidasConHistorial(
+    @ide_usr BIGINT
+)
+AS
+BEGIN
+    SELECT 
+        c.ide_cit,
+        c.cal_cit,
+        c.con_cit,
+        m.ide_mas,
+        m.nom_mas AS mascota,
+        m.esp_mas AS especie,
+        m.raz_mas AS raza,
+        cliu.num_doc AS doc_dueno,
+        CONCAT(cliu.nom_usr, ' ', cliu.ape_usr) AS nombre_dueno,
+        p.mon_pag,
+        po.nom_pay AS metodo_pago,
+        -- Datos del historial médico
+        h.sintomas,
+        h.diagnostico,
+        h.tratamiento,
+        h.medicamentos,
+        h.observaciones,
+        h.fecha_atencion
+    FROM veterinario v
+    JOIN cita c ON c.ide_vet = v.ide_vet
+    JOIN mascota m ON m.ide_mas = c.ide_mas
+    JOIN cliente cli ON cli.ide_cli = m.ide_cli
+    JOIN usuario cliu ON cliu.ide_usr = cli.ide_usr
+    JOIN pago p ON p.ide_pag = c.ide_pag
+    JOIN pay_opts po ON po.ide_pay = p.ide_pay
+    LEFT JOIN historial_medico h ON h.ide_cit = c.ide_cit
+    WHERE v.ide_usr = @ide_usr
+      AND c.est_cit = 'A'  -- Solo citas ATENDIDAS
+    ORDER BY c.cal_cit DESC
+END
+GO
+

@@ -77,4 +77,12 @@ public class VeterinarioController : ControllerBase
         var lista = await Task.Run(() => new VeterinarioDAO().ListarMascotasPorVeterinario(ide_usr));
         return Ok(lista);
     }
+
+    // Nuevo: Listar mascotas atendidas con historial médico
+    [HttpGet("listaMascotasAtendidasConHistorial/{ide_usr}")]
+    public async Task<ActionResult<List<MascotaAtendida>>> ListaMascotasAtendidasConHistorial(long ide_usr)
+    {
+        var lista = await Task.Run(() => new VeterinarioDAO().ListarMascotasAtendidasConHistorial(ide_usr));
+        return Ok(lista);
+    }
 }

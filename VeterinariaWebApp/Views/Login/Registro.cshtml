@@ -1,0 +1,401 @@
+@model VeterinariaWebApp.Models.Usuario.Cliente.RegistroClienteViewModel
+
+@{
+    ViewData["Title"] = "Registro - MiVet Online";
+    Layout = "~/Views/Shared/_LayoutPrincipal.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100 py-4">
+    <div class="registro-card p-4 shadow-lg">
+        <div class="text-center mb-4">
+            <img src="/img/veterinaria.png" alt="MiVet Logo" style="width: 70px;">
+            <h3 class="fw-bold text-primary mt-2">Crear Cuenta</h3>
+            <p class="text-muted">Únete a MiVet Online</p>
+        </div>
+
+        @if (ViewBag.MensajeError != null)
+        {
+            <div class="alert alert-danger text-center py-2">
+                <i class="fas fa-exclamation-circle me-1"></i>@ViewBag.MensajeError
+            </div>
+        }
+
+        <form asp-action="Registro" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+            <!-- Nombres y Apellidos en una fila -->
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="nom_usr" class="form-control custom-input" placeholder="Nombres" />
+                        <label asp-for="nom_usr"><i class="fas fa-user me-2"></i>Nombres</label>
+                        <span asp-validation-for="nom_usr" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="ape_usr" class="form-control custom-input" placeholder="Apellidos" />
+                        <label asp-for="ape_usr"><i class="fas fa-user me-2"></i>Apellidos</label>
+                        <span asp-validation-for="ape_usr" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Correo -->
+            <div class="form-floating mb-3">
+                <input asp-for="cor_usr" type="email" class="form-control custom-input" placeholder="correo@ejemplo.com" />
+                <label asp-for="cor_usr"><i class="fas fa-envelope me-2"></i>Correo electrónico</label>
+                <span asp-validation-for="cor_usr" class="text-danger small"></span>
+            </div>
+
+            <!-- Tipo y Número de documento en una fila -->
+            <div class="row">
+                <div class="col-5">
+                    <div class="form-floating mb-3">
+                        <select asp-for="ide_doc" asp-items="@ViewBag.TiposDocumento" class="form-select custom-input">
+                            <option value="">Tipo</option>
+                        </select>
+                        <label asp-for="ide_doc"><i class="fas fa-id-card me-2"></i>Tipo Doc.</label>
+                        <span asp-validation-for="ide_doc" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-7">
+                    <div class="form-floating mb-3">
+                        <input asp-for="num_doc" class="form-control custom-input" placeholder="Número" maxlength="12" />
+                        <label asp-for="num_doc"><i class="fas fa-hashtag me-2"></i>Nro. Documento</label>
+                        <span asp-validation-for="num_doc" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fecha de nacimiento con DatePicker -->
+            <div class="form-floating mb-3">
+                <input asp-for="fna_usr" type="text" class="form-control custom-input datepicker" 
+                       id="fna_usr" placeholder="Selecciona tu fecha" readonly />
+                <label asp-for="fna_usr"><i class="fas fa-calendar-alt me-2"></i>Fecha de nacimiento</label>
+                <span asp-validation-for="fna_usr" class="text-danger small"></span>
+            </div>
+
+            <!-- Contraseñas -->
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="pwd_usr" type="password" class="form-control custom-input" placeholder="********" />
+                        <label asp-for="pwd_usr"><i class="fas fa-lock me-2"></i>Contraseña</label>
+                        <span asp-validation-for="pwd_usr" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="ConfirmarPassword" type="password" class="form-control custom-input" placeholder="********" />
+                        <label asp-for="ConfirmarPassword"><i class="fas fa-lock me-2"></i>Confirmar</label>
+                        <span asp-validation-for="ConfirmarPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requisitos de contraseña -->
+            <div class="password-requirements mb-3">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>La contraseña debe tener mínimo 8 caracteres
+                </small>
+            </div>
+
+            <!-- Botón de registro -->
+            <button type="submit" class="btn-registro w-100 py-2 mb-3">
+                <i class="fas fa-user-plus me-2"></i>Registrarme
+            </button>
+
+            <!-- Link a Login -->
+            <div class="text-center">
+                <span class="text-muted">¿Ya tienes cuenta?</span>
+                <a asp-action="Index" class="link-login fw-bold">Inicia sesión</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Calcular fecha máxima (18 años atrás)
+            const hoy = new Date();
+            const fechaMaxima = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+            
+            // Inicializar Flatpickr
+            flatpickr("#fna_usr", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d \\de F \\de Y",
+                minDate: "1900-01-01",
+                maxDate: fechaMaxima,
+                defaultDate: null,
+                disableMobile: false,
+                monthSelectorType: "dropdown",
+                yearSelectorType: "dropdown",
+                animate: true,
+                theme: "material_green",
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Personalizar el calendario
+                    instance.calendarContainer.classList.add('mivet-calendar');
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Validar edad al seleccionar
+                    if (selectedDates.length > 0) {
+                        const fechaNac = selectedDates[0];
+                        let edad = hoy.getFullYear() - fechaNac.getFullYear();
+                        const mes = hoy.getMonth() - fechaNac.getMonth();
+                        if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                            edad--;
+                        }
+                        if (edad < 18) {
+                            instance.clear();
+                            alert('Debes ser mayor de 18 años para registrarte.');
+                        }
+                    }
+                }
+            });
+
+            // Solo permitir números en el campo de documento
+            document.getElementById('num_doc').addEventListener('input', function (e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+    </script>
+}
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #d4edda;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .registro-card {
+        background: rgba(230, 244, 234, 0.95);
+        backdrop-filter: blur(12px);
+        border-radius: 18px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .registro-card h3.fw-bold {
+        color: #155724;
+    }
+
+    .registro-card p {
+        color: #155724cc;
+    }
+
+    .registro-card .fas {
+        color: #28a745;
+    }
+
+    .custom-input {
+        border: 2px solid #85c997;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #f0f9f0;
+        color: #155724;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .custom-input:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+        background-color: #fff;
+        color: #155724;
+    }
+
+    .form-select.custom-input {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+    }
+
+    /* Estilos del DatePicker */
+    .datepicker {
+        cursor: pointer !important;
+    }
+
+    .flatpickr-calendar {
+        border-radius: 12px !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+        border: 2px solid #28a745 !important;
+    }
+
+    .flatpickr-calendar.mivet-calendar {
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .flatpickr-months {
+        background: linear-gradient(135deg, #28a745, #85c997) !important;
+        border-radius: 10px 10px 0 0 !important;
+        padding: 8px 0 !important;
+    }
+
+    .flatpickr-months .flatpickr-month {
+        color: white !important;
+        fill: white !important;
+    }
+
+    .flatpickr-current-month {
+        color: white !important;
+    }
+
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+
+    .flatpickr-monthDropdown-months option {
+        color: #155724 !important;
+        background: white !important;
+    }
+
+    .flatpickr-weekdays {
+        background-color: #e8f5e9 !important;
+    }
+
+    .flatpickr-weekday {
+        color: #155724 !important;
+        font-weight: 600 !important;
+    }
+
+    .flatpickr-day {
+        color: #155724 !important;
+        border-radius: 8px !important;
+    }
+
+    .flatpickr-day:hover {
+        background: #c8e6c9 !important;
+        border-color: #28a745 !important;
+    }
+
+    .flatpickr-day.selected {
+        background: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+
+    .flatpickr-day.today {
+        border-color: #28a745 !important;
+    }
+
+    .flatpickr-day.disabled {
+        color: #ccc !important;
+    }
+
+    .numInputWrapper:hover {
+        background: rgba(40, 167, 69, 0.1) !important;
+    }
+
+    .flatpickr-prev-month, .flatpickr-next-month {
+        fill: white !important;
+    }
+
+    .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg {
+        fill: #d4edda !important;
+    }
+
+    .btn-registro {
+        background: linear-gradient(90deg, #28a745, #85c997, #28a745);
+        background-size: 300% 100%;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.4s ease;
+        animation: gradientMove 4s linear infinite;
+        cursor: pointer;
+    }
+
+    .btn-registro:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+    }
+
+    .link-login {
+        color: #28a745;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .link-login:hover {
+        color: #155724;
+        text-decoration: underline;
+    }
+
+    .password-requirements {
+        background-color: rgba(40, 167, 69, 0.1);
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+
+    @@keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert-danger {
+        background-color: #ffcdd2;
+        color: #842029;
+        border: none;
+        border-radius: 10px;
+    }
+
+    .form-floating label {
+        color: #155724;
+        font-size: 0.85rem;
+    }
+
+    .text-danger.small {
+        font-size: 0.75rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 576px) {
+        .registro-card {
+            margin: 10px;
+            max-width: 100%;
+        }
+        .row .col-5, .row .col-6, .row .col-7 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>

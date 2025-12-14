@@ -196,7 +196,7 @@ namespace VeterinariaWebApp.Controllers
 
         public IActionResult listarClientes()
         {
-            var clientes = ArregloClientes(); // Esta línea ya no debería ser null.
+            var clientes = ArregloClientes(); 
             return View(clientes); // Pasamos la lista directamente.
         }
 

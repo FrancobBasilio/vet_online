@@ -1,4 +1,4 @@
-﻿@{
+@{
     var veterinarioId = Context.Session.GetInt32("VeterinarioId");
 }
 
@@ -53,7 +53,7 @@
             <div class="sidebar-heading">Gestión de Citas:</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("listaCitaPorVeterinarios", "Veterinario", new { ide_usr = veterinarioId })">
+                <a class="nav-link" href="@Url.Action("listaCitaPorVeterinarios", "Veterinario")">
                     <i class="fas fa-fw fa-calendar-check"></i>
                     <span>Citas Asignadas</span>
                 </a>
@@ -64,7 +64,7 @@
             <div class="sidebar-heading">Gestión de Mascotas:</div>
 
             <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("listaMascotaPorVeterinarios", "Veterinario", new { ide_usr = veterinarioId })">
+                <a class="nav-link" href="@Url.Action("listaMascotaPorVeterinarios", "Veterinario")">
                     <i class="fas fa-fw fa-dog"></i>
                     <span>Mascotas Atendidas</span>
                 </a>
@@ -182,13 +182,16 @@
     <script src="~/vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="~/vendor/datatables/dataTables.bootstrap4.min.js"></script>
     <script src="~/js/demo/datatables-demo.js"></script>
+
+    @* ===== SECCIÓN SCRIPTS - AGREGADA PARA QUE LAS VISTAS PUEDAN INYECTAR JS ===== *@
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
 
 <style>
     body {
-        background-color: #c8f5d2; 
-        color: #0b3d20; 
+        background-color: #c8f5d2;
+        color: #0b3d20;
     }
 
     .bg-gradient-primary {

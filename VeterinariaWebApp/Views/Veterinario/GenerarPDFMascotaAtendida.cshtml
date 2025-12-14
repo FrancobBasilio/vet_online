@@ -1,0 +1,223 @@
+@model VeterinariaWebApp.Models.Usuario.Veterinario.MascotaAtendida
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Historial Médico - @Model.mascota</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #fafafa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #28a745;
+        }
+
+        .header h1 { color: #28a745; margin-bottom: 5px; font-size: 24px; }
+        .header p { color: #666; font-size: 14px; }
+
+        .badge-atendida {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .pet-info {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .pet-emoji { font-size: 50px; margin-bottom: 10px; }
+        .pet-name { font-size: 24px; font-weight: bold; color: #155724; margin: 0; }
+        .pet-details { color: #155724; font-size: 14px; }
+
+        .details-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #2c7be5;
+        }
+
+        .medical-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #28a745;
+        }
+
+        .section-title { color: #2c7be5; font-size: 16px; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
+        .section-title-medical { color: #28a745; font-size: 16px; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
+
+        .detail-row { display: flex; margin-bottom: 10px; }
+        .detail-label { font-weight: 600; width: 130px; color: #555; flex-shrink: 0; }
+        .detail-value { flex: 1; }
+
+        .medical-field { margin-bottom: 15px; }
+        .medical-label { font-weight: 600; color: #155724; margin-bottom: 5px; display: block; }
+        .medical-value { background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #e9ecef; }
+
+        .amount { font-size: 18px; font-weight: bold; color: #28a745; }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .fecha-atencion {
+            background: #fff3cd;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 Historial Médico Veterinario</h1>
+        <p>MI VET ONLINE - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        <span class="badge-atendida">✓ CITA ATENDIDA</span>
+    </div>
+
+    <!-- Información de la Mascota -->
+    <div class="pet-info">
+        <div class="pet-emoji">@Model.EspecieEmoji</div>
+        <p class="pet-name">@Model.mascota</p>
+        <p class="pet-details">@Model.especie @(!string.IsNullOrEmpty(Model.raza) ? $"- {Model.raza}" : "")</p>
+    </div>
+
+    <!-- Información de la Cita y Dueño -->
+    <div class="details-container">
+        <h2 class="section-title">📋 Información de la Cita</h2>
+
+        <div class="detail-row">
+            <span class="detail-label">N° de Cita:</span>
+            <span class="detail-value">#@Model.ide_cit</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Fecha Cita:</span>
+            <span class="detail-value">@Model.cal_cit.ToString("dddd, dd MMMM yyyy")</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Hora:</span>
+            <span class="detail-value">@Model.cal_cit.ToString("hh:mm tt")</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Consultorio:</span>
+            <span class="detail-value">@Model.con_cit</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Dueño:</span>
+            <span class="detail-value">@Model.nombre_dueno</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Doc. Dueño:</span>
+            <span class="detail-value">@Model.doc_dueno</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Monto:</span>
+            <span class="detail-value amount">S/ @Model.mon_pag.ToString("N2")</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Método Pago:</span>
+            <span class="detail-value">@Model.metodo_pago</span>
+        </div>
+    </div>
+
+    <!-- Historial Médico -->
+    <div class="medical-container">
+        <h2 class="section-title-medical">🩺 Registro de Atención Médica</h2>
+
+        @if (Model.TieneHistorial)
+        {
+            @if (Model.fecha_atencion.HasValue)
+            {
+                <div class="fecha-atencion">
+                    <strong>Fecha de Atención:</strong> @Model.fecha_atencion.Value.ToString("dd/MM/yyyy HH:mm")
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.sintomas))
+            {
+                <div class="medical-field">
+                    <span class="medical-label">🌡️ Síntomas Observados:</span>
+                    <div class="medical-value">@Model.sintomas</div>
+                </div>
+            }
+
+            <div class="medical-field">
+                <span class="medical-label">🔍 Diagnóstico:</span>
+                <div class="medical-value">@Model.diagnostico</div>
+            </div>
+
+            <div class="medical-field">
+                <span class="medical-label">💊 Tratamiento:</span>
+                <div class="medical-value">@Model.tratamiento</div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.medicamentos))
+            {
+                <div class="medical-field">
+                    <span class="medical-label">💉 Medicamentos Recetados:</span>
+                    <div class="medical-value">@Model.medicamentos</div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.observaciones))
+            {
+                <div class="medical-field">
+                    <span class="medical-label">📝 Observaciones:</span>
+                    <div class="medical-value">@Model.observaciones</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="text-align: center; padding: 30px; color: #6c757d; font-style: italic;">
+                <p>No hay información de atención médica registrada para esta cita.</p>
+            </div>
+        }
+    </div>
+
+    <div class="footer">
+        <p>Este documento es un comprobante oficial generado automáticamente.</p>
+        <p>MI VET ONLINE - Todos los derechos reservados © @DateTime.Now.Year</p>
+    </div>
+</body>
+</html>

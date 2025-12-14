@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using VeterinariaAPI.Models.Usuario.Recepcionista;
 using VeterinariaAPI.Repository.Interfaces;
 

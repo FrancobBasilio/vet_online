@@ -2,6 +2,7 @@ using VeterinariaAPI.Models.Cita;
 using VeterinariaAPI.Repository.Interfaces;
 using System.Data.SqlClient;
 using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace VeterinariaAPI.Repository.DAO;
 
@@ -123,7 +124,8 @@ public class CitaDAO : ICita
                 Consultorio = Convert.ToInt64(dr["con_cit"]),
                 NombreVeterinario = dr["NombreVeterinario"].ToString(),
                 NombreMascota = dr["NombreMascota"].ToString(),
-                MontoPago = Convert.ToDecimal(dr["mon_pag"])
+                MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                EstadoCita = dr["est_cit"].ToString() ?? "P"
             });
         }
         return lista;
@@ -147,7 +149,8 @@ public class CitaDAO : ICita
                 Consultorio = Convert.ToInt64(dr["con_cit"]),
                 IdVeterinario = Convert.ToInt64(dr["ide_vet"]),
                 IdMascota = Convert.ToInt64(dr["ide_mas"]),
-                IdPago = Convert.ToInt64(dr["ide_pag"])
+                IdPago = Convert.ToInt64(dr["ide_pag"]),
+                EstadoCita = dr["est_cit"].ToString() ?? "P"
             });
         }
         return lista;
@@ -182,10 +185,88 @@ public class CitaDAO : ICita
         return mensaje;
     }
 
+    // Nuevo método para actualizar solo el estado de la cita
+    public string ActualizarEstadoCita(long idCita, string estado)
+    {
+        string mensaje = "";
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_actualizarEstadoCita", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@idCita", idCita);
+        cmd.Parameters.AddWithValue("@estado", estado);
+        try
+        {
+            cn.Open();
+            cmd.ExecuteNonQuery();
+            mensaje = estado switch
+            {
+                "P" => "Cita marcada como Pendiente",
+                "E" => "Cita en proceso de atención",
+                "A" => "Cita atendida correctamente",
+                "C" => "Cita cancelada correctamente",
+                _ => "Estado actualizado"
+            };
+        }
+        catch (Exception ex)
+        {
+            mensaje = "Error al actualizar el estado: " + ex.Message;
+        }
+        return mensaje;
+    }
 
+    // ==================== HISTORIAL MÉDICO ====================
 
+    // Agregar o actualizar historial médico
+    public string AgregarHistorialMedico(HistorialMedicoDTO dto)
+    {
+        string mensaje = "";
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_agregarHistorialMedico", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@ide_cit", dto.IdCita);
+        cmd.Parameters.AddWithValue("@sintomas", (object?)dto.Sintomas ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@diagnostico", dto.Diagnostico);
+        cmd.Parameters.AddWithValue("@tratamiento", dto.Tratamiento);
+        cmd.Parameters.AddWithValue("@medicamentos", (object?)dto.Medicamentos ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@observaciones", (object?)dto.Observaciones ?? DBNull.Value);
+        try
+        {
+            cn.Open();
+            cmd.ExecuteNonQuery();
+            mensaje = "Historial médico guardado correctamente";
+        }
+        catch (Exception ex)
+        {
+            mensaje = "Error al guardar historial médico: " + ex.Message;
+        }
+        return mensaje;
+    }
 
+    // Obtener historial médico por ID de cita
+    public HistorialMedico? ObtenerHistorialPorCita(long idCita)
+    {
+        HistorialMedico? historial = null;
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_obtenerHistorialPorCita", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@ide_cit", idCita);
 
-
-
+        cn.Open();
+        using var dr = cmd.ExecuteReader();
+        if (dr.Read())
+        {
+            historial = new HistorialMedico
+            {
+                ide_his = Convert.ToInt64(dr["ide_his"]),
+                ide_cit = Convert.ToInt64(dr["ide_cit"]),
+                sintomas = dr["sintomas"] == DBNull.Value ? null : dr["sintomas"].ToString(),
+                diagnostico = dr["diagnostico"].ToString() ?? "",
+                tratamiento = dr["tratamiento"].ToString() ?? "",
+                medicamentos = dr["medicamentos"] == DBNull.Value ? null : dr["medicamentos"].ToString(),
+                observaciones = dr["observaciones"] == DBNull.Value ? null : dr["observaciones"].ToString(),
+                fecha_atencion = Convert.ToDateTime(dr["fecha_atencion"])
+            };
+        }
+        return historial;
+    }
 }

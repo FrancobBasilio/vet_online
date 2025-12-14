@@ -44,7 +44,7 @@ public class CitaController : Controller
         return aCitas;
     }
 
-    // Método corregido: listadoVeterinario
+ 
     public List<Veterinario> listadoVeterinario()
     {
         List<Veterinario> aVeterinarios = new List<Veterinario>();
@@ -69,7 +69,7 @@ public class CitaController : Controller
         return aVeterinarios;
     }
 
-    // Método corregido: listadoCliente
+    //  listadoCliente
     public List<Cliente> listadoCliente()
     {
         List<Cliente> aClientes = new List<Cliente>();
@@ -115,7 +115,7 @@ public class CitaController : Controller
         return citas;
     }
 
-  
+
     public IActionResult ListadoCitas(int? dia, int? mes, int? año)
     {
         List<Cita> citas = ArregloCitas();
@@ -130,10 +130,10 @@ public class CitaController : Controller
         return View(citas);
     }
 
-    
+
     private async Task<bool> ExisteCita(CitaO obj)
     {
-        List<Cita> citas = ArregloCitas(); 
+        List<Cita> citas = ArregloCitas();
         return citas.Any(c => c.NombreVeterinario != null &&
                              c.CalendarioCita.Date == obj.CalendarioCita.Date &&
                              c.CalendarioCita.Hour == obj.CalendarioCita.Hour &&
@@ -144,7 +144,7 @@ public class CitaController : Controller
     [HttpGet]
     public IActionResult IniciarCreacionCita()
     {
-      
+
         return RedirectToAction("Crear", "Pago");
     }
 
@@ -156,41 +156,11 @@ public class CitaController : Controller
     [HttpGet]
     public IActionResult nuevaCita(int PagoId)
     {
-        int IdCliente = int.Parse(HttpContext.Session.GetString("token"));
+        int? idCliente = HttpContext.Session.GetInt32("ClienteId");
+        if (idCliente == null || idCliente == 0)
+            return RedirectToAction("Index", "Login");
 
-        // Obtener listado de veterinarios con NombreUsuario + Especialidad
-        var veterinarios = listadoVeterinario()
-            .Select(v => new SelectListItem
-            {
-                Value = v.IdVeterinario.ToString(),
-                Text = $"Dr. {v.NombreUsuario} - {v.especialidad}"
-            })
-            .ToList();
-
-        // Obtener listado de mascotas del cliente actual
-        var clientMascotas = new List<Mascota>(); // Inicializamos como lista vacía
-        try
-        {
-            var clientSessionId = HttpContext.Session.GetInt32("ClienteId");
-            if (clientSessionId.HasValue)
-            {
-                string url = $"{_baseUri}/Cliente/listarMascotas/{clientSessionId.Value}";
-                var clientResponse = _httpClient.GetAsync(url).Result;
-                if (clientResponse.IsSuccessStatusCode)
-                {
-                    var data = clientResponse.Content.ReadAsStringAsync().Result;
-                    clientMascotas = JsonConvert.DeserializeObject<List<Mascota>>(data) ?? new List<Mascota>();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al obtener mascotas del cliente: {ex.Message}");
-        }
-
-        ViewBag.veterinarios = veterinarios;
-        ViewBag.mascotas = new SelectList(clientMascotas, "IdMascota", "Nombre"); // Aseguramos que mascotas siempre tenga un valor
-        ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
+        CargarViewBagsParaCita(idCliente.Value);
 
         CitaO citaPagada = new CitaO() { IdPago = PagoId };
         return View(citaPagada);
@@ -202,11 +172,13 @@ public class CitaController : Controller
     [HttpPost]
     public async Task<IActionResult> nuevaCita(CitaO obj)
     {
+        int? idCliente = HttpContext.Session.GetInt32("ClienteId");
+        if (idCliente == null || idCliente == 0)
+            return RedirectToAction("Index", "Login");
+
         if (!ModelState.IsValid)
         {
-            ViewBag.veterinarios = new SelectList(listadoVeterinario(), "IdVeterinario", "NombreUsuario");
-            ViewBag.mascotas = new SelectList(new List<Mascota>(), "IdMascota", "Nombre"); // Lista vacía si hay error
-            ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
+            CargarViewBagsParaCita(idCliente.Value);
             return View(obj);
         }
 
@@ -215,9 +187,7 @@ public class CitaController : Controller
         if (citaExiste)
         {
             ModelState.AddModelError("CalendarioCita", "Ya existe una cita programada para este veterinario en esta fecha y hora.");
-            ViewBag.veterinarios = new SelectList(listadoVeterinario(), "IdVeterinario", "NombreUsuario");
-            ViewBag.mascotas = new SelectList(new List<Mascota>(), "IdMascota", "Nombre"); // Lista vacía si hay error
-            ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
+            CargarViewBagsParaCita(idCliente.Value);
             return View(obj);
         }
 
@@ -227,19 +197,103 @@ public class CitaController : Controller
 
         if (responseC.IsSuccessStatusCode)
         {
-            int? idCliente = HttpContext.Session.GetInt32("ClienteId");
-            if (idCliente == null || idCliente == 0)
-            {
-                return RedirectToAction("Index", "Login");
-            }
-            return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = Convert.ToInt64(idCliente) });
+            TempData["Exito"] = "¡Cita agendada correctamente!";
+            return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
         }
 
-        ViewBag.mensaje = "Error al registrar la cita.";
-        ViewBag.veterinarios = new SelectList(listadoVeterinario(), "IdVeterinario", "NombreUsuario");
-        ViewBag.mascotas = new SelectList(new List<Mascota>(), "IdMascota", "Nombre"); // Lista vacía si hay error
-        ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
+        TempData["Error"] = "Error al registrar la cita. Intente nuevamente.";
+        CargarViewBagsParaCita(idCliente.Value);
         return View(obj);
+    }
+
+    // GET: Cita/EditarCitaCliente
+    [HttpGet]
+    public async Task<IActionResult> EditarCitaCliente(int id)
+    {
+        int? idCliente = HttpContext.Session.GetInt32("ClienteId");
+        if (idCliente == null || idCliente == 0)
+            return RedirectToAction("Index", "Login");
+
+        var response = await _httpClient.GetAsync($"{_baseUri}/Cita/buscarCita/{id}");
+        if (!response.IsSuccessStatusCode)
+        {
+            TempData["Error"] = "No se encontró la cita solicitada.";
+            return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var cita = JsonConvert.DeserializeObject<CitaO>(content);
+
+        // Verificar que la cita sea futura
+        if (cita.CalendarioCita <= DateTime.Now)
+        {
+            TempData["Error"] = "Solo puede editar citas futuras.";
+            return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
+        }
+
+        CargarViewBagsParaCita(idCliente.Value);
+        return View(cita);
+    }
+
+    // POST: Cita/EditarCitaClientePost
+    [HttpPost]
+    public async Task<IActionResult> EditarCitaClientePost(CitaO obj)
+    {
+        int? idCliente = HttpContext.Session.GetInt32("ClienteId");
+        if (idCliente == null || idCliente == 0)
+            return RedirectToAction("Index", "Login");
+
+        if (!ModelState.IsValid)
+        {
+            CargarViewBagsParaCita(idCliente.Value);
+            return View("EditarCitaCliente", obj);
+        }
+
+        var json = JsonConvert.SerializeObject(obj);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PutAsync($"{_baseUri}/Cita/actualizaCita?id={obj.IdCita}", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            TempData["Exito"] = "¡Cita actualizada correctamente!";
+            return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
+        }
+
+        TempData["Error"] = "Error al actualizar la cita.";
+        CargarViewBagsParaCita(idCliente.Value);
+        return View("EditarCitaCliente", obj);
+    }
+
+    // Método auxiliar para cargar ViewBags de citas
+    private void CargarViewBagsParaCita(int idCliente)
+    {
+        var veterinarios = listadoVeterinario()
+            .Select(v => new SelectListItem
+            {
+                Value = v.IdVeterinario.ToString(),
+                Text = $"Dr. {v.NombreUsuario} - {v.especialidad}"
+            })
+            .ToList();
+
+        var clientMascotas = new List<Mascota>();
+        try
+        {
+            string url = $"{_baseUri}/Cliente/listarMascotas/{idCliente}";
+            var clientResponse = _httpClient.GetAsync(url).Result;
+            if (clientResponse.IsSuccessStatusCode)
+            {
+                var data = clientResponse.Content.ReadAsStringAsync().Result;
+                clientMascotas = JsonConvert.DeserializeObject<List<Mascota>>(data) ?? new List<Mascota>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener mascotas: {ex.Message}");
+        }
+
+        ViewBag.veterinarios = veterinarios;
+        ViewBag.mascotas = new SelectList(clientMascotas, "IdMascota", "Nombre");
+        ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
     }
 
 
@@ -270,7 +324,7 @@ public class CitaController : Controller
         var mascotaData = await mascotaResponse.Content.ReadAsStringAsync();
         var mascota = JsonConvert.DeserializeObject<MascotaConCliente>(mascotaData);
 
-        // 3. Ahora, con el IdUsuario del cliente, obtener todas sus mascotas
+        // 3. con el IdUsuario del cliente, obtener todas sus mascotas
         var todasLasMascotasResponse = await _httpClient.GetAsync($"{_baseUri}/Cliente/listarMascotas/{mascota.IdUsuario}");
         List<Mascota> mascotasDelDueño = new List<Mascota>();
         if (todasLasMascotasResponse.IsSuccessStatusCode)
@@ -299,7 +353,7 @@ public class CitaController : Controller
 
 
 
- [HttpPost]
+    [HttpPost]
     public async Task<IActionResult> actualizarCitaPost(int id, CitaO obj)
     {
         if (!ModelState.IsValid)
@@ -343,6 +397,29 @@ public class CitaController : Controller
 
 
 
+    // POST: Cita/CancelarCitaCliente (AJAX) - Cambia estado a Cancelada
+    [HttpPost]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> CancelarCitaCliente(int id)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsync($"{_baseUri}/Cita/actualizarEstado/{id}?estado=C", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "La cita ha sido cancelada correctamente." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "No se pudo cancelar la cita." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Error: " + ex.Message });
+        }
+    }
+
     // POST: Cita/eliminarCita (AJAX)
     [HttpPost]
     [IgnoreAntiforgeryToken]
@@ -351,11 +428,11 @@ public class CitaController : Controller
         var response = await _httpClient.DeleteAsync($"{_baseUri}/Cita/eliminarCita/{id}");
         if (response.IsSuccessStatusCode)
         {
-            return Json(new { success = true });
+            return Json(new { success = true, message = "La cita ha sido cancelada correctamente." });
         }
         else
         {
-            return Json(new { success = false });
+            return Json(new { success = false, message = "No se pudo cancelar la cita. Es posible que tenga pagos asociados." });
         }
     }
 
@@ -381,7 +458,7 @@ public class CitaController : Controller
         return cita;
     }
 
-    
+
     public IActionResult DetalleCita(long id)
     {
         Cita cita = ObtenerCitaPorId(id);
@@ -392,7 +469,7 @@ public class CitaController : Controller
         return View(cita);
     }
 
-    
+
     public IActionResult GenerarDetalleCitaPDF(long id)
     {
         String hoy = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -404,7 +481,49 @@ public class CitaController : Controller
         };
     }
 
-   
+    // Generar PDF con historial médico (para citas atendidas del cliente)
+    public async Task<IActionResult> GenerarHistorialCitaPDF(long id)
+    {
+        var clienteId = HttpContext.Session.GetInt32("ClienteId");
+        if (clienteId == null || clienteId == 0)
+        {
+            return RedirectToAction("Index", "Login");
+        }
+
+        // Obtener las citas del cliente con historial
+        CitaCliente? cita = null;
+        try
+        {
+            string url = $"{_baseUri}/Cliente/listaCitasPorCliente/{clienteId}";
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                var citas = JsonConvert.DeserializeObject<List<CitaCliente>>(data);
+                cita = citas?.FirstOrDefault(c => c.ide_cit == id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener cita: {ex.Message}");
+        }
+
+        if (cita == null)
+        {
+            TempData["Error"] = "No se encontró la cita especificada.";
+            return RedirectToAction("ListaCitaPorCliente", "Cliente");
+        }
+
+        String hoy = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        return new ViewAsPdf("GenerarHistorialCitaPDF", cita)
+        {
+            FileName = $"HistorialMedico-{cita.mascota}-{hoy}.pdf",
+            PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+            PageSize = Rotativa.AspNetCore.Options.Size.A4
+        };
+    }
+
+
     public IActionResult Index()
     {
         return View();

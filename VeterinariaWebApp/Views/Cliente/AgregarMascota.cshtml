@@ -1,138 +1,228 @@
-﻿@model VeterinariaWebApp.Models.Mascota.Mascota
+@model VeterinariaWebApp.Models.Mascota.Mascota
+
 @{
     ViewData["Title"] = "Registrar Mascota";
     Layout = "~/Views/Shared/_LayoutCliente.cshtml";
 }
 
-<h2>Registrar Nueva Mascota</h2>
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
 
-@if (!string.IsNullOrEmpty(ViewBag.Mensaje))
-{
-    <div class="alert alert-info">@ViewBag.Mensaje</div>
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle text-success me-2"></i> Registrar Nueva Mascota
+        </h1>
+        <a asp-action="listaMascotasPorCliente" asp-route-ide_usr="@Context.Session.GetInt32("ClienteId")" 
+           class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Volver al listado
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header py-3 bg-gradient-success text-white">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white text-success me-3">
+                            <i class="fas fa-paw fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Nueva Mascota</h5>
+                            <small class="opacity-75">Complete los datos de su mascota</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="AgregarMascota" method="post" id="formMascota">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Nombre -->
+                        <div class="mb-4">
+                            <label asp-for="Nombre" class="form-label fw-bold">
+                                <i class="fas fa-tag me-1 text-success"></i> Nombre de la Mascota
+                            </label>
+                            <input asp-for="Nombre" class="form-control form-control-lg" 
+                                   placeholder="Ej: Max, Luna, Rocky..." maxlength="50" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Especie y Raza -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Especie" class="form-label fw-bold">
+                                    <i class="fas fa-paw me-1 text-success"></i> Especie
+                                </label>
+                                <select asp-for="Especie" class="form-select form-select-lg" id="selectEspecie">
+                                    <option value="">Seleccione una especie</option>
+                                    <option value="Perro">🐕 Perro</option>
+                                    <option value="Gato">🐱 Gato</option>
+                                    <option value="Ave">🐦 Ave</option>
+                                    <option value="Conejo">🐰 Conejo</option>
+                                    <option value="Hamster">🐹 Hámster</option>
+                                    <option value="Pez">🐠 Pez</option>
+                                    <option value="Tortuga">🐢 Tortuga</option>
+                                    <option value="Otro">📋 Otro</option>
+                                </select>
+                                <span asp-validation-for="Especie" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Raza" class="form-label fw-bold">
+                                    <i class="fas fa-dna me-1 text-success"></i> Raza
+                                </label>
+                                <input asp-for="Raza" class="form-control form-control-lg" 
+                                       placeholder="Ej: Labrador, Siamés..." maxlength="50" />
+                                <span asp-validation-for="Raza" class="text-danger small"></span>
+                                <small class="text-muted">Opcional - Deje vacío si no conoce la raza</small>
+                            </div>
+                        </div>
+
+                        <!-- Fecha de Nacimiento -->
+                        <div class="mb-4">
+                            <label asp-for="FechaNacimiento" class="form-label fw-bold">
+                                <i class="fas fa-birthday-cake me-1 text-success"></i> Fecha de Nacimiento
+                            </label>
+                            <input asp-for="FechaNacimiento" type="text" class="form-control form-control-lg datepicker" 
+                                   id="fechaNacimiento" placeholder="Seleccione la fecha" readonly />
+                            <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                            <small class="text-muted">Si no conoce la fecha exacta, ingrese una aproximada</small>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="alert alert-light border-success mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle text-success me-2 fa-lg"></i>
+                                <div>
+                                    <strong>Información:</strong> Una vez registrada su mascota, 
+                                    podrá agendar citas médicas y llevar un historial de atenciones.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="listaMascotasPorCliente" asp-route-ide_usr="@Context.Session.GetInt32("ClienteId")" 
+                               class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-5" id="btnRegistrar">
+                                <i class="fas fa-save me-1"></i> Registrar Mascota
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar Flatpickr
+            flatpickr("#fechaNacimiento", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d \\de F \\de Y",
+                minDate: "1990-01-01",
+                maxDate: "today",
+                disableMobile: false,
+                monthSelectorType: "dropdown",
+                animate: true
+            });
+
+            // Validación del formulario antes de enviar
+            document.getElementById('formMascota').addEventListener('submit', function(e) {
+                const nombre = document.querySelector('input[name="Nombre"]').value.trim();
+                const especie = document.getElementById('selectEspecie').value;
+                const fecha = document.getElementById('fechaNacimiento').value;
+
+                if (!nombre || !especie || !fecha) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos incompletos',
+                        text: 'Por favor complete todos los campos requeridos.',
+                        confirmButtonColor: '#28a745'
+                    });
+                    return false;
+                }
+
+                // Mostrar loading
+                document.getElementById('btnRegistrar').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Registrando...';
+                document.getElementById('btnRegistrar').disabled = true;
+            });
+        });
+    </script>
 }
 
-<form asp-action="AgregarMascota" method="post">
-    <div class="form-group">
-        <label>Nombre</label>
-        <input asp-for="Nombre" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label>Especie</label>
-        <input asp-for="Especie" class="form-control" required />
-    </div>
-    <div class="form-group">
-        <label>Raza</label>
-        <input asp-for="Raza" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input asp-for="FechaNacimiento" type="date" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-success mt-3">Registrar Mascota</button>
-</form>
-
 <style>
-    body {
-        background: linear-gradient(to right, #b8f2e6, #dfffea);
-        background-attachment: fixed;
-        font-family: 'Segoe UI', sans-serif;
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #1e7e34 0%, #28a745 50%, #20c997 100%) !important;
     }
 
-    form {
-        background-color: #ffffff;
-        padding: 40px 45px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        max-width: 520px;
-        margin: 60px auto;
-        animation: fadeIn 0.6s ease-in-out;
-        border-top: 6px solid #28a745;
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    h2 {
-        text-align: center;
-        color: #28a745;
-        font-weight: 700;
-        margin-bottom: 30px;
-        letter-spacing: 0.5px;
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
     }
 
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    label {
-        display: block;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 8px;
-    }
-
-    input.form-control {
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
         border-radius: 10px;
-        border: 2px solid #c7e9ce;
-        padding: 10px 14px;
         transition: all 0.3s ease;
-        font-size: 15px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .form-control-lg, .form-select-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    .alert-light {
         background-color: #f8fff9;
     }
 
-        input.form-control:focus {
-            border-color: #28a745;
-            background-color: #fff;
-            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
-        }
-
-    .btn-success {
-        display: block;
-        width: 100%;
-        background: linear-gradient(90deg, #28a745, #00c97b, #28a745);
-        background-size: 200% 100%;
-        border: none;
-        border-radius: 12px;
-        padding: 12px;
-        font-weight: 600;
-        font-size: 1rem;
-        letter-spacing: 0.5px;
-        color: #fff;
-        transition: all 0.4s ease;
-        animation: moveGradient 4s infinite linear;
+    /* Flatpickr custom */
+    .flatpickr-calendar {
+        border-radius: 10px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
     }
 
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
-    .alert {
-        text-align: center;
-        border-radius: 10px;
-        font-size: 0.95rem;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(15px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @@keyframes moveGradient {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+    .flatpickr-day.selected {
+        background: #28a745 !important;
+        border-color: #28a745 !important;
     }
 </style>

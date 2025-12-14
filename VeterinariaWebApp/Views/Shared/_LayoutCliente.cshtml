@@ -1,15 +1,16 @@
 ﻿@{
     var clienteId = Context.Session.GetInt32("ClienteId");
+    var nombreCliente = Context.Session.GetString("NombreCliente") ?? "Cliente";
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
+    <meta name="description" content="MiVet Online - Sistema de Gestión Veterinaria" />
+    <meta name="author" content="MiVet" />
 
     <title>MiVet Online - Cliente</title>
 
@@ -25,6 +26,7 @@
 
 <body id="page-top">
     <div id="wrapper">
+        <!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@Url.Action("Index", "Cliente")">
                 <div class="sidebar-brand-icon">
@@ -71,47 +73,55 @@
                 </a>
             </li>
 
+            <hr class="sidebar-divider" />
+
+            <div class="sidebar-heading">Mi Cuenta:</div>
+
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Perfil", "Cliente")">
+                    <i class="fas fa-fw fa-user-cog"></i>
+                    <span>Mi Perfil</span>
+                </a>
+            </li>
+
             <hr class="sidebar-divider d-none d-md-block" />
 
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
         </ul>
+        <!-- End Sidebar -->
 
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
+                <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
 
                     <ul class="navbar-nav ml-auto">
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2" />
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                        <!-- Saludo personalizado -->
+                        <li class="nav-item d-none d-sm-flex align-items-center mr-3">
+                            <span class="text-gray-600 small">
+                                <i class="fas fa-hand-sparkles mr-1"></i>¡Hola, <strong>@nombreCliente</strong>!
+                            </span>
                         </li>
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
+                        <!-- User Dropdown -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Cliente</span>
+                          
                                 <img class="img-profile rounded-circle" src="~/img/undraw_profile.svg">
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="@Url.Action("Perfil", "Cliente")">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Mi Perfil
+                                </a>
+                                <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Cerrar sesión
@@ -120,6 +130,7 @@
                         </li>
                     </ul>
                 </nav>
+                <!-- End Topbar -->
 
                 <div class="container-fluid">
                     @RenderBody()
@@ -140,19 +151,26 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <!-- Logout Modal -->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">¿Estás seguro de que quieres salir?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">
+                        <i class="fas fa-sign-out-alt mr-2"></i>¿Estás seguro de que quieres salir?
+                    </h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Haz clic en "Cerrar sesión" si deseas finalizar tu sesión y salir.</div>
+                <div class="modal-body">
+                    Haz clic en "Cerrar sesión" si deseas finalizar tu sesión y salir.
+                </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
-                    <a class="btn btn-danger" href="@Url.Action("Index", "Login")">Cerrar sesión</a>
+                    <a class="btn btn-danger" href="@Url.Action("CerrarSesion", "Cliente")">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Cerrar sesión
+                    </a>
                 </div>
             </div>
         </div>
@@ -181,8 +199,8 @@
 
 <style>
     body {
-        background-color: #c8f5d2; 
-        color: #0b3d20; 
+        background-color: #c8f5d2;
+        color: #0b3d20;
     }
 
     .bg-gradient-primary {
@@ -308,4 +326,22 @@
             text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
         }
 
+    /* Dropdown styles */
+    .dropdown-item {
+        transition: all 0.2s ease;
+    }
+
+        .dropdown-item:hover {
+            background-color: #e8f5e9 !important;
+            color: #155724 !important;
+        }
+
+        .dropdown-item i {
+            color: #28a745 !important;
+        }
+
+    /* Saludo personalizado */
+    .navbar-nav .text-gray-600 strong {
+        color: #155724 !important;
+    }
 </style>

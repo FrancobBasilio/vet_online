@@ -1,7 +1,7 @@
 @model VeterinariaWebApp.Models.Cita.CitaO
 
 @{
-    ViewData["Title"] = "Nueva Cita";
+    ViewData["Title"] = "Editar Cita";
     Layout = "~/Views/Shared/_LayoutCliente.cshtml";
     var clienteId = Context.Session.GetInt32("ClienteId");
 }
@@ -14,7 +14,7 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-calendar-plus text-success me-2"></i> Agendar Nueva Cita
+            <i class="fas fa-edit text-warning me-2"></i> Editar Cita
         </h1>
         <a asp-controller="Cliente" asp-action="listaCitaPorCliente" asp-route-ide_usr="@clienteId" 
            class="btn btn-secondary btn-sm">
@@ -25,26 +25,36 @@
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
             <div class="card shadow-lg border-0">
-                <div class="card-header py-3 bg-gradient-success text-white">
+                <div class="card-header py-3 bg-gradient-warning text-white">
                     <div class="d-flex align-items-center">
-                        <div class="icon-circle bg-white text-success me-3">
-                            <i class="fas fa-calendar-check fa-lg"></i>
+                        <div class="icon-circle bg-white text-warning me-3">
+                            <i class="fas fa-calendar-alt fa-lg"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0 fw-bold">Nueva Cita Veterinaria</h5>
-                            <small class="opacity-75">Complete los datos para agendar la cita</small>
+                            <h5 class="mb-0 fw-bold">Editar Cita #@Model.IdCita</h5>
+                            <small class="opacity-75">Modifique los datos que desee actualizar</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body p-4">
-                    <form asp-action="nuevaCita" method="post" id="formCita">
+                    @if (!string.IsNullOrEmpty(ViewBag.Mensaje))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.Mensaje
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="EditarCitaClientePost" method="post" id="formEditarCita">
+                        <input asp-for="IdCita" type="hidden" />
+                        <input asp-for="IdPago" type="hidden" />
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <!-- Fecha y Hora -->
                         <div class="mb-4">
                             <label asp-for="CalendarioCita" class="form-label fw-bold">
-                                <i class="fas fa-calendar-alt me-1 text-success"></i> Fecha y Hora de la Cita
+                                <i class="fas fa-calendar-alt me-1 text-warning"></i> Fecha y Hora de la Cita
                             </label>
                             <input asp-for="CalendarioCita" type="text" class="form-control form-control-lg" 
                                    id="fechaHoraCita" placeholder="Seleccione fecha y hora" readonly />
@@ -57,15 +67,15 @@
                         <!-- Consultorio -->
                         <div class="mb-4">
                             <label asp-for="Consultorio" class="form-label fw-bold">
-                                <i class="fas fa-door-open me-1 text-success"></i> Consultorio
+                                <i class="fas fa-door-open me-1 text-warning"></i> Consultorio
                             </label>
                             <select asp-for="Consultorio" class="form-select form-select-lg">
                                 <option value="">Seleccione un consultorio</option>
-                                <option value="1">Consultorio 1 - Medicina General</option>
-                                <option value="2">Consultorio 2 - Cirugía</option>
-                                <option value="3">Consultorio 3 - Vacunación</option>
-                                <option value="4">Consultorio 4 - Emergencias</option>
-                                <option value="5">Consultorio 5 - Dermatología</option>
+                                <option value="1" @@(Model.Consultorio == 1 ? "selected" : "")>Consultorio 1 - Medicina General</option>
+                                <option value="2" @@(Model.Consultorio == 2 ? "selected" : "")>Consultorio 2 - Cirugía</option>
+                                <option value="3" @@(Model.Consultorio == 3 ? "selected" : "")>Consultorio 3 - Vacunación</option>
+                                <option value="4" @@(Model.Consultorio == 4 ? "selected" : "")>Consultorio 4 - Emergencias</option>
+                                <option value="5" @@(Model.Consultorio == 5 ? "selected" : "")>Consultorio 5 - Dermatología</option>
                             </select>
                             <span asp-validation-for="Consultorio" class="text-danger small"></span>
                         </div>
@@ -73,7 +83,7 @@
                         <!-- Veterinario -->
                         <div class="mb-4">
                             <label asp-for="IdVeterinario" class="form-label fw-bold">
-                                <i class="fas fa-user-md me-1 text-success"></i> Veterinario
+                                <i class="fas fa-user-md me-1 text-warning"></i> Veterinario
                             </label>
                             @Html.DropDownListFor(model => model.IdVeterinario,
                                 (IEnumerable<SelectListItem>)ViewBag.veterinarios,
@@ -85,29 +95,22 @@
                         <!-- Mascota -->
                         <div class="mb-4">
                             <label asp-for="IdMascota" class="form-label fw-bold">
-                                <i class="fas fa-paw me-1 text-success"></i> Mascota
+                                <i class="fas fa-paw me-1 text-warning"></i> Mascota
                             </label>
                             @Html.DropDownListFor(model => model.IdMascota,
                                 (IEnumerable<SelectListItem>)ViewBag.mascotas,
                                 "(Seleccione su Mascota)",
                                 new { @class = "form-select form-select-lg" })
                             <span asp-validation-for="IdMascota" class="text-danger small"></span>
-                            <small class="text-muted">
-                                <a asp-controller="Cliente" asp-action="AgregarMascota" class="text-success">
-                                    <i class="fas fa-plus-circle me-1"></i>¿No ves tu mascota? Regístrala aquí
-                                </a>
-                            </small>
                         </div>
 
-                        <input asp-for="IdPago" type="hidden" />
-
-                        <!-- Información del pago -->
-                        <div class="alert alert-info border-0 mb-4">
+                        <!-- Info -->
+                        <div class="alert alert-light border-warning mb-4">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-receipt text-info me-3 fa-lg"></i>
+                                <i class="fas fa-info-circle text-warning me-2 fa-lg"></i>
                                 <div>
-                                    <strong>Pago registrado:</strong> Su pago ya fue procesado. 
-                                    Al confirmar la cita, quedará agendada automáticamente.
+                                    <strong>Nota:</strong> Solo puede modificar citas futuras. 
+                                    El pago asociado no se verá afectado.
                                 </div>
                             </div>
                         </div>
@@ -118,8 +121,8 @@
                                class="btn btn-outline-secondary btn-lg px-4">
                                 <i class="fas fa-times me-1"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg px-5" id="btnAgendar">
-                                <i class="fas fa-calendar-check me-1"></i> Agendar Cita
+                            <button type="submit" class="btn btn-warning btn-lg px-5 text-white" id="btnGuardar">
+                                <i class="fas fa-save me-1"></i> Guardar Cambios
                             </button>
                         </div>
                     </form>
@@ -137,33 +140,32 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Inicializar Flatpickr con fecha y hora
+            // Fecha actual de la cita
+            const fechaActualCita = '@Model.CalendarioCita.ToString("yyyy-MM-ddTHH:mm")';
+
+            // Inicializar Flatpickr
             flatpickr("#fechaHoraCita", {
                 locale: "es",
                 enableTime: true,
                 dateFormat: "Y-m-d\\TH:i",
                 altInput: true,
                 altFormat: "d \\de F \\de Y - h:i K",
+                defaultDate: fechaActualCita,
                 minDate: "today",
-                maxDate: new Date().fp_incr(90), // Máximo 90 días adelante
+                maxDate: new Date().fp_incr(90),
                 minTime: "08:00",
                 maxTime: "18:00",
                 minuteIncrement: 30,
                 disableMobile: false,
                 disable: [
                     function(date) {
-                        // Deshabilitar domingos (0 = domingo)
-                        return date.getDay() === 0;
+                        return date.getDay() === 0; // Deshabilitar domingos
                     }
-                ],
-                onChange: function(selectedDates, dateStr, instance) {
-                    // Actualizar el campo hidden con el formato correcto
-                    document.querySelector('input[name="CalendarioCita"]').value = dateStr;
-                }
+                ]
             });
 
             // Validación del formulario
-            document.getElementById('formCita').addEventListener('submit', function(e) {
+            document.getElementById('formEditarCita').addEventListener('submit', function(e) {
                 const fecha = document.getElementById('fechaHoraCita').value;
                 const consultorio = document.querySelector('select[name="Consultorio"]').value;
                 const veterinario = document.querySelector('select[name="IdVeterinario"]').value;
@@ -175,36 +177,22 @@
                         icon: 'warning',
                         title: 'Campos incompletos',
                         text: 'Por favor complete todos los campos requeridos.',
-                        confirmButtonColor: '#28a745'
-                    });
-                    return false;
-                }
-
-                const fechaSeleccionada = new Date(fecha);
-                const fechaActual = new Date();
-
-                if (fechaSeleccionada < fechaActual) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Fecha inválida',
-                        text: 'No puede seleccionar una fecha u hora pasada.',
-                        confirmButtonColor: '#28a745'
+                        confirmButtonColor: '#f39c12'
                     });
                     return false;
                 }
 
                 // Mostrar loading
-                document.getElementById('btnAgendar').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Agendando...';
-                document.getElementById('btnAgendar').disabled = true;
+                document.getElementById('btnGuardar').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
+                document.getElementById('btnGuardar').disabled = true;
             });
         });
     </script>
 }
 
 <style>
-    .bg-gradient-success {
-        background: linear-gradient(135deg, #1e7e34 0%, #28a745 50%, #20c997 100%) !important;
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f39c12 0%, #f1c40f 50%, #f9ca24 100%) !important;
     }
 
     .icon-circle {
@@ -228,43 +216,23 @@
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        border-color: #f39c12;
+        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
     }
 
-    .form-control-lg, .form-select-lg {
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    .btn-warning {
+        background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
         border: none;
         transition: all 0.3s ease;
     }
 
-    .btn-success:hover {
+    .btn-warning:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-    }
-
-    .alert-info {
-        background-color: #e7f3ff;
-    }
-
-    /* Flatpickr custom */
-    .flatpickr-calendar {
-        border-radius: 10px !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
     }
 
     .flatpickr-day.selected {
-        background: #28a745 !important;
-        border-color: #28a745 !important;
-    }
-
-    .flatpickr-time input:hover,
-    .flatpickr-time input:focus {
-        background: #e8f5e9 !important;
+        background: #f39c12 !important;
+        border-color: #f39c12 !important;
     }
 </style>

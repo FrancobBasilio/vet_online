@@ -1,7 +1,8 @@
-using VeterinariaAPI.Models.Usuario.Veterinario;
+﻿using VeterinariaAPI.Models.Usuario.Veterinario;
 using VeterinariaAPI.Repository.Interfaces;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace VeterinariaAPI.Repository.DAO;
 
@@ -193,7 +194,11 @@ public class VeterinarioDAO : IVeterinario
                 con_cit = Convert.ToInt32(dr["con_cit"]),
                 mascota = dr["mascota"].ToString(),
                 especie = dr["especie"].ToString(),
-                mon_pag = Convert.ToDecimal(dr["mon_pag"])
+                doc_dueno = dr["doc_dueño"].ToString(),
+                nombre_dueno = dr["nombre_dueño"].ToString(),
+                mon_pag = Convert.ToDecimal(dr["mon_pag"]),
+                nom_pay = dr["nom_pay"].ToString(),
+                est_cit = dr["est_cit"].ToString() ?? "P"
             });
         }
         return listaCitas;
@@ -233,10 +238,46 @@ public class VeterinarioDAO : IVeterinario
                 Mascota = dr["Mascota"].ToString(),
                 Especie = dr["Especie"].ToString(),
                 Raza = dr["Raza"].ToString(),
-                Doc_Due�o = dr["Doc_Due�o"].ToString(),
+                Doc_Dueño = dr["Doc_Dueño"].ToString(),
                 Total_Citas = Convert.ToInt32(dr["Total_Citas"])
             });
         }
         return listaMascotas;
+    }
+
+    // Listar mascotas atendidas con historial médico completo
+    public IEnumerable<MascotaAtendida> ListarMascotasAtendidasConHistorial(long ide_usr)
+    {
+        var lista = new List<MascotaAtendida>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarMascotasAtendidasConHistorial", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@ide_usr", ide_usr);
+        cn.Open();
+        using var dr = cmd.ExecuteReader();
+        while (dr.Read())
+        {
+            lista.Add(new MascotaAtendida()
+            {
+                ide_cit = Convert.ToInt64(dr["ide_cit"]),
+                cal_cit = Convert.ToDateTime(dr["cal_cit"]),
+                con_cit = Convert.ToInt32(dr["con_cit"]),
+                ide_mas = Convert.ToInt64(dr["ide_mas"]),
+                mascota = dr["mascota"].ToString(),
+                especie = dr["especie"].ToString(),
+                raza = dr["raza"].ToString(),
+                doc_dueno = dr["doc_dueno"].ToString(),
+                nombre_dueno = dr["nombre_dueno"].ToString(),
+                mon_pag = Convert.ToDecimal(dr["mon_pag"]),
+                metodo_pago = dr["metodo_pago"].ToString(),
+                sintomas = dr["sintomas"] == DBNull.Value ? null : dr["sintomas"].ToString(),
+                diagnostico = dr["diagnostico"] == DBNull.Value ? null : dr["diagnostico"].ToString(),
+                tratamiento = dr["tratamiento"] == DBNull.Value ? null : dr["tratamiento"].ToString(),
+                medicamentos = dr["medicamentos"] == DBNull.Value ? null : dr["medicamentos"].ToString(),
+                observaciones = dr["observaciones"] == DBNull.Value ? null : dr["observaciones"].ToString(),
+                fecha_atencion = dr["fecha_atencion"] == DBNull.Value ? null : Convert.ToDateTime(dr["fecha_atencion"])
+            });
+        }
+        return lista;
     }
 }

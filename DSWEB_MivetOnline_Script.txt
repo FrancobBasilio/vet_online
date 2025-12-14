@@ -1,0 +1,209 @@
+USE BD_MiVetOnline
+GO
+
+-- =============================================
+-- USUARIOS DEL SISTEMA
+-- =============================================
+
+-- RECEPCIONISTA (ide_usr = 1)
+EXEC sp_agregarRecepcionista 
+    'recep@mivet.com', 
+    'clave12345', 
+    'Ana', 
+    'Pérez', 
+    '12345678', 
+    '1990-05-15', 
+    1, 
+    2000.00;
+GO
+
+-- VETERINARIOS
+-- Veterinario 1 - Dermatología (ide_usr = 2, ide_vet = 1)
+EXEC sp_agregarVeterinario 
+    'sofia@mivet.com', 
+    'clave12345', 
+    'Sofía', 
+    'Rojas', 
+    '87654321', 
+    '1988-03-22', 
+    1, 
+    3500.00, 
+    1;
+GO
+
+-- Veterinario 2 - Cirugía (ide_usr = 3, ide_vet = 2)
+EXEC sp_agregarVeterinario 
+    'luis@mivet.com', 
+    'clave12345', 
+    'Luis', 
+    'Gómez', 
+    '78912345', 
+    '1990-11-05', 
+    1, 
+    3800.00, 
+    3;
+GO
+
+-- CLIENTES
+-- Cliente 1 (ide_usr = 4, ide_cli = 1)
+EXEC sp_agregarCliente 
+    'juanPerez@mivet.com', 
+    'Clave12345', 
+    'Juan', 
+    'Pérez', 
+    '11223344', 
+    '1985-06-10', 
+    1;
+GO
+
+-- Cliente 2 (ide_usr = 5, ide_cli = 2)
+EXEC sp_agregarCliente 
+    'mariaTorres@mivet.com', 
+    'Clave12345', 
+    'María', 
+    'Torres', 
+    '22334455', 
+    '1992-12-03', 
+    1;
+GO
+
+-- =============================================
+-- MASCOTAS (usando ide_usuario, NO ide_cliente)
+-- =============================================
+
+-- Mascota 1 - Max (Perro Labrador) - Cliente Juan (ide_usr = 4)
+EXEC sp_agregarMascota 
+    'Max', 
+    'Perro', 
+    'Labrador', 
+    '2020-05-15', 
+    4;  -- ide_usuario del cliente Juan
+GO
+
+-- Mascota 2 - Luna (Gato Siamés) - Cliente Juan (ide_usr = 4)
+EXEC sp_agregarMascota 
+    'Luna', 
+    'Gato', 
+    'Siamés', 
+    '2021-08-22', 
+    4;  -- ide_usuario del cliente Juan
+GO
+
+-- Mascota 3 - Kiwi (Ave Canario) - Cliente María (ide_usr = 5)
+EXEC sp_agregarMascota 
+    'Kiwi', 
+    'Ave', 
+    'Canario', 
+    '2022-01-10', 
+    5;  -- ide_usuario del cliente María
+GO
+
+-- =============================================
+-- PAGOS (usando ide_usuario del cliente)
+-- =============================================
+
+-- Pago 1 - Cliente Juan (ide_usr = 4)
+EXEC sp_agregarPago 
+    '2025-10-05 09:00', 
+    150.00, 
+    2,  -- Yape
+    4;  -- ide_usuario del cliente Juan
+GO
+
+-- Pago 2 - Cliente Juan (ide_usr = 4)
+EXEC sp_agregarPago 
+    '2025-10-05 10:00', 
+    200.00, 
+    1,  -- Efectivo
+    4;  -- ide_usuario del cliente Juan
+GO
+
+-- Pago 3 - Cliente María (ide_usr = 5)
+EXEC sp_agregarPago 
+    '2025-10-05 11:00', 
+    180.00, 
+    3,  -- Plin
+    5;  -- ide_usuario del cliente María
+GO
+
+-- =============================================
+-- CITAS (todas inician en estado Pendiente 'P')
+-- =============================================
+
+-- Cita 1 - Max con Dra. Sofía (Dermatología)
+EXEC sp_agregarCita 
+    '2025-12-15 09:00',  -- Fecha futura
+    1,                    -- Consultorio 1
+    1,                    -- ide_vet (Sofía)
+    1,                    -- ide_mas (Max)
+    1;                    -- ide_pag
+GO
+
+-- Cita 2 - Luna con Dra. Sofía (Dermatología)
+EXEC sp_agregarCita 
+    '2025-12-15 10:30',  -- Fecha futura
+    1,                    -- Consultorio 1
+    1,                    -- ide_vet (Sofía)
+    2,                    -- ide_mas (Luna)
+    2;                    -- ide_pag
+GO
+
+-- Cita 3 - Kiwi con Dr. Luis (Cirugía)
+EXEC sp_agregarCita 
+    '2025-12-16 14:00',  -- Fecha futura
+    2,                    -- Consultorio 2
+    2,                    -- ide_vet (Luis)
+    3,                    -- ide_mas (Kiwi)
+    3;                    -- ide_pag
+GO
+
+-- =============================================
+-- VERIFICACIÓN DE DATOS
+-- =============================================
+
+PRINT ''
+PRINT 'USUARIOS:'
+SELECT ide_usr, cor_usr, nom_usr, ape_usr, 
+    CASE ide_rol 
+        WHEN 1 THEN 'Cliente'
+        WHEN 2 THEN 'Veterinario'
+        WHEN 3 THEN 'Recepcionista'
+    END AS Rol
+FROM usuario ORDER BY ide_usr;
+
+PRINT ''
+PRINT 'MASCOTAS:'
+SELECT m.ide_mas, m.nom_mas, m.esp_mas, m.raz_mas, 
+    CONCAT(u.nom_usr, ' ', u.ape_usr) AS Dueño
+FROM mascota m
+JOIN cliente c ON m.ide_cli = c.ide_cli
+JOIN usuario u ON c.ide_usr = u.ide_usr
+ORDER BY m.ide_mas;
+
+PRINT ''
+PRINT 'VETERINARIOS:'
+SELECT v.ide_vet, CONCAT(u.nom_usr, ' ', u.ape_usr) AS Veterinario, 
+    e.nom_esp AS Especialidad
+FROM veterinario v
+JOIN usuario u ON v.ide_usr = u.ide_usr
+JOIN especialidad e ON v.ide_esp = e.ide_esp;
+
+PRINT ''
+PRINT 'CITAS (con estado):'
+SELECT 
+    c.ide_cit,
+    c.cal_cit AS Fecha,
+    m.nom_mas AS Mascota,
+    CONCAT(uv.nom_usr, ' ', uv.ape_usr) AS Veterinario,
+    CASE c.est_cit 
+        WHEN 'P' THEN 'Pendiente'
+        WHEN 'E' THEN 'En Atención'
+        WHEN 'A' THEN 'Atendida'
+        WHEN 'C' THEN 'Cancelada'
+    END AS Estado
+FROM cita c
+JOIN mascota m ON c.ide_mas = m.ide_mas
+JOIN veterinario v ON c.ide_vet = v.ide_vet
+JOIN usuario uv ON v.ide_usr = uv.ide_usr
+ORDER BY c.cal_cit;
+

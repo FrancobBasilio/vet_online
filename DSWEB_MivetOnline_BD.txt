@@ -1,0 +1,197 @@
+USE master
+GO
+
+IF DB_ID('BD_MiVetOnline') IS NOT NULL
+    DROP DATABASE BD_MiVetOnline
+GO
+
+CREATE DATABASE BD_MiVetOnline
+GO
+
+USE BD_MiVetOnline
+GO
+
+-- =============================================
+-- TABLAS
+-- =============================================
+
+-- TABLA: Documentos
+CREATE TABLE user_doc (
+    ide_doc BIGINT NOT NULL PRIMARY KEY IDENTITY(1,1),
+    nom_doc VARCHAR(30)
+)
+GO
+
+INSERT INTO user_doc (nom_doc) VALUES 
+    ('DNI'),
+    ('CEX')
+GO
+
+-- TABLA: ROLES
+CREATE TABLE roles (
+    ide_rol BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nom_rol VARCHAR(15) NOT NULL CHECK(DATALENGTH(nom_rol) >= 4), 
+    pri_rol INT NOT NULL CHECK(pri_rol >= 0) 
+)
+GO
+
+INSERT INTO roles (nom_rol, pri_rol) VALUES 
+    ('Cliente', 0),        
+    ('Veterinario', 1),    
+    ('Recepcionista', 2)
+GO
+
+-- TABLA: usuario 
+CREATE TABLE usuario (
+    ide_usr BIGINT IDENTITY(1,1) PRIMARY KEY,
+    cor_usr VARCHAR(100) NOT NULL UNIQUE, 
+    pwd_usr VARCHAR(150) NOT NULL,        
+    nom_usr VARCHAR(100) NOT NULL,       
+    ape_usr VARCHAR(100) NOT NULL,       
+    fna_usr DATE NOT NULL,               
+    num_doc VARCHAR(12) NOT NULL,       
+    ide_doc BIGINT NOT NULL,              
+    ide_rol BIGINT NOT NULL,            
+    
+    CONSTRAINT pwdLongerThan8Char CHECK(DATALENGTH(pwd_usr) >= 8),
+    CONSTRAINT FK_usuario_user_doc FOREIGN KEY(ide_doc) REFERENCES user_doc(ide_doc),
+    CONSTRAINT FK_usuario_roles FOREIGN KEY(ide_rol) REFERENCES roles(ide_rol)
+)
+GO
+
+-- TABLA: especialidad 
+CREATE TABLE especialidad (
+    ide_esp BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nom_esp VARCHAR(25) NOT NULL
+)
+GO
+
+INSERT INTO especialidad (nom_esp) VALUES 
+    ('Dermatología'),
+    ('Pediatría'),
+    ('Cirugía'),
+    ('Oftalmología'),
+    ('Neurología'),
+    ('Radiología')
+GO
+
+-- TABLA: veterinario 
+CREATE TABLE veterinario (
+    ide_vet BIGINT IDENTITY(1,1) PRIMARY KEY,
+    sue_vet SMALLMONEY NOT NULL CHECK(sue_vet > 0), 
+    ide_esp BIGINT NOT NULL,                        
+    ide_usr BIGINT NOT NULL UNIQUE,                 
+    
+    CONSTRAINT FK_veterinario_especialidad FOREIGN KEY(ide_esp) REFERENCES especialidad(ide_esp),
+    CONSTRAINT FK_veterinario_usuario FOREIGN KEY(ide_usr) REFERENCES usuario(ide_usr)
+)
+GO
+
+-- TABLA: cliente 
+CREATE TABLE cliente (
+    ide_cli BIGINT IDENTITY(1,1) PRIMARY KEY,
+    ide_usr BIGINT NOT NULL UNIQUE,
+    
+    CONSTRAINT FK_cliente_usuario FOREIGN KEY(ide_usr) REFERENCES usuario(ide_usr)
+)
+GO
+
+-- TABLA: recepcionista 
+CREATE TABLE recepcionista (
+    ide_rep BIGINT IDENTITY(1,1) PRIMARY KEY,
+    sue_rep SMALLMONEY NOT NULL CHECK(sue_rep > 0), 
+    ide_usr BIGINT NOT NULL UNIQUE,                 
+    
+    CONSTRAINT FK_recepcionista_usuario FOREIGN KEY(ide_usr) REFERENCES usuario(ide_usr)
+)
+GO
+
+-- TABLA: Metodos de pago
+CREATE TABLE pay_opts (
+    ide_pay BIGINT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    nom_pay VARCHAR(50)
+)
+GO
+
+INSERT INTO pay_opts (nom_pay) VALUES 
+    ('Efectivo'),
+    ('Yape'),
+    ('Plin')
+GO
+
+-- TABLA: pago 
+CREATE TABLE pago (
+    ide_pag BIGINT IDENTITY(1,1) PRIMARY KEY,
+    hor_pag DATETIME NOT NULL,      
+    mon_pag SMALLMONEY NOT NULL CHECK(mon_pag > 0), 
+    ide_pay BIGINT NOT NULL,        
+    ide_cli BIGINT NOT NULL,       
+    
+    CONSTRAINT FK_pago_pay_opts FOREIGN KEY(ide_pay) REFERENCES pay_opts(ide_pay),
+    CONSTRAINT FK_pago_cliente FOREIGN KEY(ide_cli) REFERENCES cliente(ide_cli)
+)
+GO
+
+-- TABLA: mascota
+CREATE TABLE mascota (
+    ide_mas BIGINT IDENTITY(1,1) PRIMARY KEY,
+    nom_mas VARCHAR(50) NOT NULL,         
+    esp_mas VARCHAR(50) NOT NULL,          
+    raz_mas VARCHAR(50),                  
+    fna_mas DATE NOT NULL,                 
+    his_mas TEXT,                         
+    ide_cli BIGINT NOT NULL,               
+    
+    CONSTRAINT FK_mascota_cliente FOREIGN KEY(ide_cli) REFERENCES cliente(ide_cli)
+)
+GO
+
+-- TABLA: cita (CON ESTADO)
+CREATE TABLE cita (
+    ide_cit BIGINT IDENTITY(1,1) PRIMARY KEY,
+    cal_cit DATETIME NOT NULL,      
+    con_cit INT NOT NULL CHECK(con_cit > 0), 
+    est_cit CHAR(1) NOT NULL DEFAULT 'P',  -- P=Pendiente, E=En Atención, A=Atendida, C=Cancelada
+    ide_vet BIGINT NOT NULL,        
+    ide_mas BIGINT NOT NULL,       
+    ide_pag BIGINT NOT NULL,       
+    
+    CONSTRAINT FK_cita_veterinario FOREIGN KEY(ide_vet) REFERENCES veterinario(ide_vet),
+    CONSTRAINT FK_cita_mascota FOREIGN KEY(ide_mas) REFERENCES mascota(ide_mas),
+    CONSTRAINT FK_cita_pago FOREIGN KEY(ide_pag) REFERENCES pago(ide_pag),
+    CONSTRAINT CHK_estado_cita CHECK(est_cit IN ('P', 'E', 'A', 'C'))
+)
+GO
+
+-- Tabla para historial medico
+
+CREATE TABLE historial_medico (
+    ide_his BIGINT IDENTITY(1,1) PRIMARY KEY,
+    ide_cit BIGINT NOT NULL,                    -- FK a cita
+    sintomas NVARCHAR(500) NULL,                -- Síntomas observados
+    diagnostico NVARCHAR(500) NOT NULL,         -- Diagnóstico (obligatorio)
+    tratamiento NVARCHAR(500) NOT NULL,         -- Tratamiento (obligatorio)
+    medicamentos NVARCHAR(500) NULL,            -- Medicamentos recetados
+    observaciones NVARCHAR(1000) NULL,          -- Observaciones adicionales
+    fecha_atencion DATETIME NOT NULL DEFAULT GETDATE(), -- Fecha/hora de atención
+    CONSTRAINT FK_historial_cita FOREIGN KEY (ide_cit) REFERENCES cita(ide_cit)
+)
+GO
+
+-- Comentario descriptivo de la columna estado
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Estado de la cita: P=Pendiente, E=En Atención, A=Atendida, C=Cancelada',
+    @level0type = N'SCHEMA', @level0name = 'dbo',
+    @level1type = N'TABLE',  @level1name = 'cita',
+    @level2type = N'COLUMN', @level2name = 'est_cit';
+GO
+
+
+-- Agregar descripción
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabla de historial médico de atenciones veterinarias',
+    @level0type = N'SCHEMA', @level0name = 'dbo',
+    @level1type = N'TABLE', @level1name = 'historial_medico'
+GO

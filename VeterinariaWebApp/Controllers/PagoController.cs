@@ -1,6 +1,6 @@
 ﻿using VeterinariaWebApp.Models.Pago;
-using VeterinariaWebApp.Models.Usuario; // Para UserDoc
-using VeterinariaWebApp.Models.Usuario.Cliente; // Para el modelo Cliente
+using VeterinariaWebApp.Models.Usuario; 
+using VeterinariaWebApp.Models.Usuario.Cliente; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -21,7 +21,7 @@ public class PagoController : Controller
         _httpClient.BaseAddress = _baseUri;
     }
 
-    // Método corregido: Cambiado de "listarPagos" a "ListarPagosGeneral"
+    
     public List<Pago> listadoPagosGeneral()
     {
         List<Pago> aPagos = new List<Pago>();
@@ -42,7 +42,7 @@ public class PagoController : Controller
         return aPagos;
     }
 
-    // Método corregido: Cambiado de "obtenerPagoPorIdFront" a "ObtenerPagoPorIdFront"
+
     public Pago ObtenerPagoPorId(long id)
     {
         Pago pago = new Pago();
@@ -63,7 +63,7 @@ public class PagoController : Controller
         return pago;
     }
 
-    // Método corregido: Cambiado de "listarPagosPorCliente" a "ListarPagosPorCliente"
+
     public List<Pago> listadoPagosPorCliente(long token)
     {
         List<Pago> aPagos = new List<Pago>();
@@ -84,7 +84,7 @@ public class PagoController : Controller
         return aPagos;
     }
 
-    // Método corregido: Cambiado de "ListarDocumentos" a "ListarDocumentos" (esto ya estaba correcto)
+
     public List<UserDoc> listadoTipoDocumentos()
     {
         List<UserDoc> aTDocumentos = new List<UserDoc>();
@@ -105,7 +105,7 @@ public class PagoController : Controller
         return aTDocumentos;
     }
 
-    // Método corregido: Cambiado de "listarClientesFront" a "listaClientes"
+
     public List<Cliente> listadoCliente()
     {
         List<Cliente> aClientes = new List<Cliente>();
@@ -126,7 +126,7 @@ public class PagoController : Controller
         return aClientes;
     }
 
-    // Método corregido: Cambiado de "ListarPayOpts" a "ObtenerTiposDePago"
+
     public List<PayOpts> ListadoPayOpts()
     {
         List<PayOpts> aPayOpts = new List<PayOpts>();
@@ -147,22 +147,22 @@ public class PagoController : Controller
         return aPayOpts;
     }
 
-    // Acción para mostrar los pagos realizados por recepcionista
+
     public IActionResult PagosRecepcionista()
     {
-        var pagos = listadoPagosGeneral(); // Esta línea ya no debería ser null.
-        return View(pagos); // Pasamos la lista directamente.
+        var pagos = listadoPagosGeneral(); 
+        return View(pagos); 
     }
 
     // Acción para mostrar los pagos del cliente logueado
     public IActionResult PagosCliente()
     {
         long token = long.Parse(HttpContext.Session.GetString("token"));
-        var pagos = listadoPagosPorCliente(token); // Esta línea ya no debería ser null.
-        return View(pagos); // Pasamos la lista directamente.
+        var pagos = listadoPagosPorCliente(token); 
+        return View(pagos); 
     }
 
-    // Acción para ver el detalle de un pago
+ 
     public IActionResult DetallePago(long id)
     {
         if (id == 0)
@@ -172,7 +172,7 @@ public class PagoController : Controller
         return View(ObtenerPagoPorId(id));
     }
 
-    // Acción para generar el PDF del detalle de un pago
+    
     public IActionResult DetallePagoPDF(long id)
     {
         String hoy = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -184,7 +184,7 @@ public class PagoController : Controller
         };
     }
 
-    // Acción para crear un nuevo pago (esta parte parece estar bien)
+    
     public IActionResult Crear()
     {
         ViewBag.tipoPagos = new SelectList(ListadoPayOpts(), "ide_pay", "nom_pay");
@@ -197,7 +197,7 @@ public class PagoController : Controller
     {
         obj.HoraPago = DateTime.Now;
         obj.IdCliente = int.Parse(HttpContext.Session.GetString("token"));
-        obj.MontoPago = 30.00m; // Monto fijo de 30.00
+        obj.MontoPago = 30.00m; 
 
         if (!ModelState.IsValid)
         {
@@ -209,26 +209,23 @@ public class PagoController : Controller
         var json = JsonConvert.SerializeObject(obj);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        // --- CORRECCIÓN AQUÍ ---
-        // El endpoint debe incluir el idUsuario en la URL, como lo define la API.
-        // La URL correcta es: /api/Pago/AgregarPago/{idUsuario}
-        var idUsuario = obj.IdCliente; // Usamos el IdCliente que ya asignaste
+      
+        var idUsuario = obj.IdCliente; 
         var responseC = await _httpClient.PostAsync($"{_baseUri}/Pago/AgregarPago/{idUsuario}", content);
 
         if (responseC.IsSuccessStatusCode)
         {
             ViewBag.mensaje = "Pago registrado correctamente..!!!";
 
-            // --- CORRECCIÓN AQUÍ ---
-            // Ahora sí puedes leer el ID del pago generado.
+         
             var idPagoStr = await responseC.Content.ReadAsStringAsync();
-            long IdPago = long.Parse(idPagoStr); // Esto debería funcionar ahora.
+            long IdPago = long.Parse(idPagoStr); 
 
             return RedirectToAction("nuevaCita", "Cita", new { PagoId = IdPago });
         }
         else
         {
-            // Manejo de errores si la API responde con un error.
+           
             ViewBag.mensaje = $"Error al registrar el pago. Código: {responseC.StatusCode}";
             ViewBag.tipoPagos = new SelectList(ListadoPayOpts(), "ide_pay", "nom_pay");
             ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
