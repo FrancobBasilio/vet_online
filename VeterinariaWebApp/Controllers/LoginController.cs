@@ -153,6 +153,7 @@ namespace VeterinariaWebApp.Controllers
 
             HttpContext.Session.SetString("token", token);
 
+            // Guardar el ID específico por rol
             if (rol == "Cliente")
             {
                 HttpContext.Session.SetInt32("ClienteId", (int)idUsuario);
@@ -172,8 +173,15 @@ namespace VeterinariaWebApp.Controllers
                 return View();
             }
 
+            // >>>> NUEVO: Guardar el nombre del usuario en la sesión <<<<
+            var nombreCompleto = await ObtenerNombreUsuarioAsync(idUsuario);
+            HttpContext.Session.SetString("NombreUsuario", nombreCompleto);
+
+        
+
             return RedirectToAction("Index", rol);
         }
+
 
         #endregion
 
@@ -232,5 +240,35 @@ namespace VeterinariaWebApp.Controllers
         }
 
         #endregion
+
+        private async Task<string> ObtenerNombreUsuarioAsync(long idUsuario)
+        {
+            try
+            {
+                var client = GetClient();
+                var response = await client.GetAsync($"/api/Usuario/ObtenerNombreUsuario?id={idUsuario}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    // >>>> CORRECCIÓN: Eliminar las comillas dobles <<<<
+                    var nombre = json.Trim('"'); // Elimina las comillas dobles del principio y final
+                    Console.WriteLine($"[DEBUG] Nombre obtenido de la API para ID {idUsuario}: '{nombre}'");
+                    return nombre;
+                }
+                else
+                {
+                    Console.WriteLine($"[ERROR] API devolvió código {response.StatusCode} para ID {idUsuario}");
+                    return "Usuario";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EXCEPTION] Error al obtener nombre: {ex.Message}");
+                return "Usuario";
+            }
+        }
+
+
     }
 }

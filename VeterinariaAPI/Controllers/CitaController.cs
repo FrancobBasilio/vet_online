@@ -8,35 +8,92 @@ namespace VeterinariaAPI.Controllers;
 [ApiController]
 public class CitaController : ControllerBase
 {
-    [HttpGet("listaCita")]
-    public async Task<ActionResult<List<Cita>>> ListaCita()
+
+
+    //listaCitasPendientes
+
+    [HttpGet("listaCitasPendientes")]
+    public async Task<ActionResult<List<Cita>>> ListaCitasPendientes()
     {
-        var lista = await Task.Run(() => new CitaDAO().ListarCitas());
+        var lista = await Task.Run(() => new CitaDAO().ListarCitasPendientes());
         return Ok(lista);
     }
 
-    [HttpGet("listaCitaO")]
-    public async Task<ActionResult<List<CitaO>>> ListaCitaO()
+    //listaCitasVencidas
+
+    [HttpGet("listaCitasVencidas")]
+    public async Task<ActionResult<List<Cita>>> ListaCitasVencidas()
     {
-        var lista = await Task.Run(() => new CitaDAO().ListarCitasO());
+        var lista = await Task.Run(() => new CitaDAO().ListarCitasVencidas());
         return Ok(lista);
     }
+
+    [HttpPut("cancelarPorInasistencia/{id}")]
+    public async Task<ActionResult<string>> CancelarPorInasistencia(long id)
+    {
+        var mensaje = await Task.Run(() => new CitaDAO().CancelarCitaPorInasistencia(id));
+        return Ok(mensaje);
+    }
+    //listaCitasAtendidas
+
+    [HttpGet("listaCitasAtendidas")]
+    public async Task<ActionResult<List<Cita>>> ListaCitasAtendidas()
+    {
+        var lista = await Task.Run(() => new CitaDAO().ListarCitasAtendidas());
+        return Ok(lista);
+    }
+    //listaCitasCanceladas
+
+    [HttpGet("listaCitasCanceladas")]
+    public async Task<ActionResult<List<Cita>>> ListaCitasCanceladas()
+    {
+        var lista = await Task.Run(() => new CitaDAO().ListarCitasCanceladas());
+        return Ok(lista);
+    }
+
+
+    //Listar Citas por estado 
+
+    [HttpGet("listaCitasPorEstado")]
+    public async Task<ActionResult<List<Cita>>> ListaCitasPorEstado(string estado)
+    {
+        var lista = await Task.Run(() => new CitaDAO().ListarCitasPorEstado(estado));
+        return Ok(lista);
+    }
+
+
+
+
 
 
     [HttpPost("agregaCita")]
     public async Task<ActionResult<string>> AgregaCita(CitaO obj)
     {
         var mensaje = await Task.Run(() => new CitaDAO().AgregarCita(obj));
-        return Ok(mensaje);
+
+      
+        if (mensaje.Contains("horario ya está ocupado"))
+        {
+            return Conflict(mensaje); 
+        }
+
+        return Ok(mensaje); 
     }
+
 
     [HttpPut("actualizaCita")]
     public async Task<ActionResult<string>> ActualizaCita(CitaO obj)
     {
         var mensaje = await Task.Run(() => new CitaDAO().ModificarCita(obj));
-        return Ok(mensaje);
-    }
 
+        
+        if (mensaje.Contains("horario ya está ocupado"))
+        {
+            return Conflict(mensaje); 
+        }
+
+        return Ok(mensaje); 
+    }
 
 
 
@@ -63,12 +120,6 @@ public class CitaController : ControllerBase
         return Ok(cita);
     }
 
-    [HttpGet("listaCitaPorFecha")]
-    public async Task<ActionResult<List<Cita>>> ListaCitaPorFecha(int dia, int mes, int año)
-    {
-        var lista = await Task.Run(() => new CitaDAO().ListarCitasPorFecha(dia, mes, año));
-        return Ok(lista);
-    }
 
     // Endpoint para actualizar el estado de una cita
     [HttpPut("actualizarEstado/{id}")]

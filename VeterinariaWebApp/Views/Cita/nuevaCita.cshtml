@@ -1,3 +1,10 @@
+@if (ViewBag.MensajePago != null)
+{
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>@ViewBag.MensajePago
+    </div>
+}
+
 @model VeterinariaWebApp.Models.Cita.CitaO
 
 @{
@@ -50,7 +57,10 @@
                                    id="fechaHoraCita" placeholder="Seleccione fecha y hora" readonly />
                             <span asp-validation-for="CalendarioCita" class="text-danger small"></span>
                             <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>Horario de atención: Lunes a Sábado, 8:00 AM - 6:00 PM
+                                <i class="fas fa-info-circle me-1"></i>
+                                Horario de atención: Lunes a Sábado, 8:00 AM - 6:00 PM.
+                                <strong>Cada cita tiene una duración de 30 minutos.</strong>
+                                Por favor, seleccione un horario disponible.
                             </small>
                         </div>
 

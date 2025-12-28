@@ -27,6 +27,10 @@ public class Mascota
     [DataType(DataType.Date)]
     public DateTime FechaNacimiento { get; set; }
 
+
+
+
+
     // Propiedad calculada para la edad
     public string Edad
     {
@@ -35,22 +39,11 @@ public class Mascota
             var hoy = DateTime.Today;
             var años = hoy.Year - FechaNacimiento.Year;
             var meses = hoy.Month - FechaNacimiento.Month;
-
-            if (hoy.Day < FechaNacimiento.Day)
-                meses--;
-
-            if (meses < 0)
-            {
-                años--;
-                meses += 12;
-            }
-
-            if (años > 0)
-                return años == 1 ? "1 año" : $"{años} años";
-            else if (meses > 0)
-                return meses == 1 ? "1 mes" : $"{meses} meses";
-            else
-                return "Recién nacido";
+            if (hoy.Day < FechaNacimiento.Day) meses--;
+            if (meses < 0) { años--; meses += 12; }
+            if (años > 0) return años == 1 ? "1 año" : $"{años} años";
+            else if (meses > 0) return meses == 1 ? "1 mes" : $"{meses} meses";
+            else return "Recién nacido";
         }
     }
 }

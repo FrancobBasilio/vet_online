@@ -58,7 +58,7 @@ public class ClienteController : ControllerBase
         return Ok(lista);
     }
 
-    //  CORREGIDO: Ahora recibe el id_usuario como parámetro
+
     [HttpPost("agregarMascota/{id_usuario}")]
     public async Task<ActionResult<string>> AgregarMascota(long id_usuario, [FromBody] Mascota mascota)
     {
@@ -88,16 +88,17 @@ public class ClienteController : ControllerBase
     }
 
 
-
     [HttpDelete("eliminarMascota/{id}")]
-    public async Task<ActionResult<string>> EliminarMascota(long id)
+    public async Task<ActionResult<string>> EliminarMascota(long id, [FromQuery] bool confirmar = false)
     {
         if (id <= 0)
             return BadRequest("ID de mascota inválido.");
 
-        var mensaje = await Task.Run(() => new ClienteDAO().EliminarMascota(id));
+        var mensaje = await Task.Run(() => new ClienteDAO().EliminarMascota(id, confirmar));
         return Ok(mensaje);
     }
+
+
 
     [HttpGet("listarMascotasPorId/{idMascota}")]
     public async Task<ActionResult<MascotaConCliente>> ListarMascotasPorId(long idMascota)

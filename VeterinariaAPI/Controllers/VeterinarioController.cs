@@ -78,7 +78,7 @@ public class VeterinarioController : ControllerBase
         return Ok(lista);
     }
 
-    // Nuevo: Listar mascotas atendidas con historial médico
+    //  Listar mascotas atendidas con historial médico
     [HttpGet("listaMascotasAtendidasConHistorial/{ide_usr}")]
     public async Task<ActionResult<List<MascotaAtendida>>> ListaMascotasAtendidasConHistorial(long ide_usr)
     {

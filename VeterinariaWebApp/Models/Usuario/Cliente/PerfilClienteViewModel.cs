@@ -9,7 +9,7 @@ public class PerfilClienteViewModel
     public long ide_usr { get; set; }
 
     [DisplayName("Correo electrónico")]
-    public string? cor_usr { get; set; } // Solo lectura
+    public string? cor_usr { get; set; } 
 
     [DisplayName("Nombres")]
     [Required(ErrorMessage = "El nombre es requerido")]
@@ -39,7 +39,7 @@ public class PerfilClienteViewModel
     // Para mostrar el nombre del tipo de documento
     public string? nom_doc { get; set; }
 
-    // Contraseña actual (no editable, solo para pasar al backend)
+  
     public string? pwd_usr { get; set; }
 
     public long ide_rol { get; set; } = 1; // Cliente

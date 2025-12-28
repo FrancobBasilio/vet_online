@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// 🔵 Servicios de sesión
+//  Servicios de sesión
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -15,7 +15,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// 🔵 Registrar HttpClient con la URL base de tu API
+//  Registrar HttpClient con la URL base de tu API
 builder.Services.AddHttpClient("ClinicaAPI", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7054/api/");
@@ -35,7 +35,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-// 🔵 Middleware de sesión (DEBE estar antes de MapControllerRoute)
+//  Middleware de sesión (DEBE estar antes de MapControllerRoute)
 app.UseSession();
 
 app.MapControllerRoute(

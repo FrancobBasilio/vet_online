@@ -94,41 +94,87 @@ public class CitaController : Controller
         return aClientes;
     }
 
-    // Método para listar citas por fecha
-    public List<Cita> listarCitasPorFecha(int dia, int mes, int año)
+
+
+
+
+    //LISTADO DE CITAS PENDIENTES 
+
+    public async Task<IActionResult> CitasPendientes()
     {
-        List<Cita> citas = new List<Cita>();
-        try
+        var response = await _httpClient.GetAsync($"{_baseUri}/Cita/listaCitasPendientes");
+        if (response.IsSuccessStatusCode)
         {
-            string url = $"{_baseUri}/Cita/listaCitaPorFecha?dia={dia}&mes={mes}&año={año}";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
-            if (response.IsSuccessStatusCode)
-            {
-                var data = response.Content.ReadAsStringAsync().Result;
-                citas = JsonConvert.DeserializeObject<List<Cita>>(data) ?? new List<Cita>();
-            }
+            var json = await response.Content.ReadAsStringAsync();
+            var lista = JsonConvert.DeserializeObject<List<Cita>>(json);
+            return View(lista);
         }
-        catch (Exception ex)
+        return View(new List<Cita>());
+    }
+
+    //LISTADO DE CITAS VENCIDAS
+
+
+    public async Task<IActionResult> CitasVencidas()
+    {
+        var response = await _httpClient.GetAsync($"{_baseUri}/Cita/listaCitasVencidas");
+        if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine($"Error al obtener citas por fecha: {ex.Message}");
+            var json = await response.Content.ReadAsStringAsync();
+            var lista = JsonConvert.DeserializeObject<List<Cita>>(json);
+            return View(lista);
         }
-        return citas;
+        return View(new List<Cita>());
     }
 
 
-    public IActionResult ListadoCitas(int? dia, int? mes, int? año)
+    //Marcar como no asistido a la cita
+    [HttpPost]
+    public async Task<IActionResult> MarcarComoNoAsistio(long idCita)
     {
-        List<Cita> citas = ArregloCitas();
-        if (dia.HasValue && mes.HasValue && año.HasValue)
+        var response = await _httpClient.PutAsync($"{_baseUri}/Cita/cancelarPorInasistencia/{idCita}", null);
+        if (response.IsSuccessStatusCode)
         {
-            citas = listarCitasPorFecha(dia.Value, mes.Value, año.Value);
+            TempData["Exito"] = "La cita ha sido marcada como 'No Asistió'.";
         }
-
-        ViewBag.Dia = dia;
-        ViewBag.Mes = mes;
-        ViewBag.Año = año;
-        return View(citas);
+        else
+        {
+            TempData["Error"] = "Error al actualizar la cita.";
+        }
+        return RedirectToAction("CitasVencidas");
     }
+
+
+    //Listado de Citas Atendidas
+    public async Task<IActionResult> CitasAtendidas()
+    {
+        var response = await _httpClient.GetAsync($"{_baseUri}/Cita/listaCitasAtendidas");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            var lista = JsonConvert.DeserializeObject<List<Cita>>(json);
+            return View(lista);
+        }
+        return View(new List<Cita>());
+    }
+
+    //Listado de Citas Canceladas
+
+    public async Task<IActionResult> CitasCanceladas()
+    {
+        var response = await _httpClient.GetAsync($"{_baseUri}/Cita/listaCitasCanceladas");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            var lista = JsonConvert.DeserializeObject<List<Cita>>(json);
+            return View(lista);
+        }
+        return View(new List<Cita>());
+    }
+
+
+
+
 
 
     private async Task<bool> ExisteCita(CitaO obj)
@@ -142,17 +188,26 @@ public class CitaController : Controller
 
     //  Cita/IniciarCreacionCita
     [HttpGet]
-    public IActionResult IniciarCreacionCita()
+    public async Task<IActionResult> IniciarCreacionCita()
     {
+        var pagoPendiente = await ObtenerPagoPendiente();
 
-        return RedirectToAction("Crear", "Pago");
+        if (pagoPendiente != null)
+        {
+            // Si hay un pago pendiente, redirigir directamente al formulario de cita
+            return RedirectToAction("nuevaCita", new { PagoId = pagoPendiente.IdPago });
+        }
+        else
+        {
+            // Si no hay un pago pendiente, redirigir al formulario de pago
+            return RedirectToAction("Crear", "Pago");
+        }
     }
 
 
 
-
     //  Cita/nuevaCita
-    // GET: Cita/nuevaCita
+ 
     [HttpGet]
     public IActionResult nuevaCita(int PagoId)
     {
@@ -160,12 +215,21 @@ public class CitaController : Controller
         if (idCliente == null || idCliente == 0)
             return RedirectToAction("Index", "Login");
 
+        // 👇 NUEVA LÓGICA: Establecer el mensaje si hay un PagoId
+        if (PagoId > 0)
+        {
+            ViewBag.MensajePago = "Pago registrado: Su pago ya fue procesado. Al confirmar la cita, quedará agendada automáticamente.";
+        }
+
         CargarViewBagsParaCita(idCliente.Value);
 
         CitaO citaPagada = new CitaO() { IdPago = PagoId };
         return View(citaPagada);
     }
 
+
+
+    //ULTIMA MODIFICACION 
 
 
     // POST: Cita/nuevaCita
@@ -183,14 +247,6 @@ public class CitaController : Controller
         }
 
         // Validar que no haya una cita ya programada a la misma hora para el mismo veterinario
-        bool citaExiste = await ExisteCita(obj);
-        if (citaExiste)
-        {
-            ModelState.AddModelError("CalendarioCita", "Ya existe una cita programada para este veterinario en esta fecha y hora.");
-            CargarViewBagsParaCita(idCliente.Value);
-            return View(obj);
-        }
-
         var json = JsonConvert.SerializeObject(obj);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var responseC = await _httpClient.PostAsync($"{_baseUri}/Cita/agregaCita", content);
@@ -200,11 +256,30 @@ public class CitaController : Controller
             TempData["Exito"] = "¡Cita agendada correctamente!";
             return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
         }
+        else
+        {
+            var errorMessage = await responseC.Content.ReadAsStringAsync();
 
-        TempData["Error"] = "Error al registrar la cita. Intente nuevamente.";
-        CargarViewBagsParaCita(idCliente.Value);
-        return View(obj);
+            // Verificar si el error es por disponibilidad
+            if (errorMessage.Contains("horario ya está ocupado"))
+            {
+                ModelState.AddModelError("CalendarioCita", "Ya existe una cita programada para este veterinario en esta fecha y hora.");
+            }
+            else
+            {
+                TempData["Error"] = "Error al registrar la cita. Intente nuevamente.";
+            }
+
+            CargarViewBagsParaCita(idCliente.Value);
+            return View(obj);
+        }
     }
+
+
+
+
+
+
 
     // GET: Cita/EditarCitaCliente
     [HttpGet]
@@ -235,6 +310,13 @@ public class CitaController : Controller
         return View(cita);
     }
 
+
+
+
+
+    //ULTIMA MODIFICACION 
+
+
     // POST: Cita/EditarCitaClientePost
     [HttpPost]
     public async Task<IActionResult> EditarCitaClientePost(CitaO obj)
@@ -258,11 +340,29 @@ public class CitaController : Controller
             TempData["Exito"] = "¡Cita actualizada correctamente!";
             return RedirectToAction("listaCitaPorCliente", "Cliente", new { ide_usr = idCliente.Value });
         }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
 
-        TempData["Error"] = "Error al actualizar la cita.";
-        CargarViewBagsParaCita(idCliente.Value);
-        return View("EditarCitaCliente", obj);
+            // Verificar si el error es por disponibilidad
+            if (errorMessage.Contains("horario ya está ocupado"))
+            {
+                ModelState.AddModelError("CalendarioCita", "Ya existe una cita programada para este veterinario en esta fecha y hora.");
+            }
+            else
+            {
+                TempData["Error"] = "Error al actualizar la cita.";
+            }
+
+            CargarViewBagsParaCita(idCliente.Value);
+            return View("EditarCitaCliente", obj);
+        }
     }
+
+
+
+
+
 
     // Método auxiliar para cargar ViewBags de citas
     private void CargarViewBagsParaCita(int idCliente)
@@ -324,7 +424,6 @@ public class CitaController : Controller
         var mascotaData = await mascotaResponse.Content.ReadAsStringAsync();
         var mascota = JsonConvert.DeserializeObject<MascotaConCliente>(mascotaData);
 
-        // 3. con el IdUsuario del cliente, obtener todas sus mascotas
         var todasLasMascotasResponse = await _httpClient.GetAsync($"{_baseUri}/Cliente/listarMascotas/{mascota.IdUsuario}");
         List<Mascota> mascotasDelDueño = new List<Mascota>();
         if (todasLasMascotasResponse.IsSuccessStatusCode)
@@ -377,7 +476,7 @@ public class CitaController : Controller
 
         if (response.IsSuccessStatusCode)
         {
-            return RedirectToAction("ListadoCitas");
+            return RedirectToAction("CitasPendientes");
         }
 
         // Si falla la actualización, mantener el formato de veterinarios con especialidad
@@ -522,6 +621,35 @@ public class CitaController : Controller
             PageSize = Rotativa.AspNetCore.Options.Size.A4
         };
     }
+
+
+    private async Task<Pago?> ObtenerPagoPendiente()
+    {
+        try
+        {
+            var idCliente = HttpContext.Session.GetInt32("ClienteId");
+            if (idCliente == null || idCliente == 0)
+                return null;
+
+            var response = await _httpClient.GetAsync($"{_baseUri}/Pago/ListarPagosPorCliente/{idCliente}");
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                var pagos = JsonConvert.DeserializeObject<List<Pago>>(data) ?? new List<Pago>();
+                return pagos.FirstOrDefault(p => p.EstadoPago == "Pendiente");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener pago pendiente: {ex.Message}");
+        }
+        return null;
+    }
+
+
+
+
+
 
 
     public IActionResult Index()

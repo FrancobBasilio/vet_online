@@ -22,6 +22,13 @@ public class UsuarioController : ControllerBase
         return Ok(resultado);
     }
 
+    [HttpGet("ObtenerNombreUsuario")]
+    public async Task<ActionResult<string>> ObtenerNombreUsuario(long id)
+    {
+        var nombre = await Task.Run(() => new UsuarioDAO().ObtenerNombreUsuario(id));
+        return Ok(nombre);
+    }
+
     [HttpGet("ListarDocumentos")]
     public async Task<ActionResult<List<UserDoc>>> ListarDocumentos()
     {

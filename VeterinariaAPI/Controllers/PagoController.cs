@@ -1,4 +1,4 @@
-using VeterinariaAPI.Models.Pago;
+﻿using VeterinariaAPI.Models.Pago;
 using VeterinariaAPI.Repository.DAO;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,12 +22,47 @@ public class PagoController : ControllerBase
         return Ok(lista);
     }
 
-    [HttpGet("ListarPagosPorCliente/{idUsuario}")]
-    public async Task<ActionResult<List<Pago>>> ListarPagosPorCliente(long idUsuario)
+
+    [HttpGet("ListarPagosPendientes")]
+    public async Task<ActionResult<List<Pago>>> ListarPagosPendientes()
     {
-        var lista = await Task.Run(() => new PagoDAO().ListarPagosPorCliente(idUsuario));
+        var lista = await Task.Run(() => new PagoDAO().ListarPagosPendientes());
         return Ok(lista);
     }
+
+
+    [HttpGet("ListarPagosRealizados")]
+    public async Task<ActionResult<List<Pago>>> ListarPagosRealizados()
+    {
+        var lista = await Task.Run(() => new PagoDAO().ListarPagosRealizados());
+        return Ok(lista);
+    }
+
+
+
+
+
+
+    [HttpGet("ListarPagosPorCliente/{idUsuario}")]
+    public ActionResult<IEnumerable<Pago>> ListarPagosPorCliente(long idUsuario)
+    {
+        try
+        {
+            // QUITAMOS LA VERIFICACIÓN DE AUTENTICACIÓN
+            // var usuarioId = long.Parse(User.FindFirst("ide_usr")?.Value ?? "0");
+            // if (usuarioId == 0)
+            //     return Unauthorized("Usuario no autenticado.");
+
+            var pagoDAO = new PagoDAO();
+            var pagos = pagoDAO.ListarPagosPorCliente(idUsuario);
+            return Ok(pagos);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+        }
+    }
+
 
     [HttpPost("AgregarPago/{idUsuario}")]
     public async Task<ActionResult<long>> AgregarPago(PagoO pago, long idUsuario)
@@ -57,10 +92,12 @@ public class PagoController : ControllerBase
         return Ok(mensaje);
     }
 
+
     [HttpDelete("EliminarPago/{id}")]
     public async Task<ActionResult<string>> EliminarPago(long id)
     {
         var mensaje = await Task.Run(() => new PagoDAO().EliminarPago(id));
         return Ok(mensaje);
     }
+
 }

@@ -17,8 +17,11 @@ public class Pago
     public string? TipoPago { get; set; }
 
     [DisplayName("Cliente")]
-    public string? NombreCliente { get; set; } 
+    public string? NombreCliente { get; set; }
 
     [DisplayName("E-mail")]
     public string? CorreoCliente { get; set; }
+
+    [DisplayName("Estado")]
+    public string EstadoPago { get; set; } = "Pendiente";
 }

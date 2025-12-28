@@ -7,4 +7,6 @@ public class Mascota
     public string? Especie { get; set; }
     public string? Raza { get; set; }
     public DateTime FechaNacimiento { get; set; }
+
+    public string EstadoMascota { get; set; } = "A"; // "A" = Activa, "I" = Inactiva
 }

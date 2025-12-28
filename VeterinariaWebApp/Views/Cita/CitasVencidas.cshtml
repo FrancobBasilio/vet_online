@@ -1,0 +1,89 @@
+﻿@model IEnumerable<VeterinariaWebApp.Models.Cita.Cita>
+
+@{
+    ViewData["Title"] = "Citas Vencidas";
+    Layout = "~/Views/Shared/_LayoutRecepcionista.cshtml";
+}
+
+<h1>Citas Vencidas</h1>
+<hr>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.IdCita)</th>
+                        <th>@Html.DisplayNameFor(model => model.CalendarioCita)</th>
+                        <th>@Html.DisplayNameFor(model => model.Consultorio)</th>
+                        <th>@Html.DisplayNameFor(model => model.NombreVeterinario)</th>
+                        <th>@Html.DisplayNameFor(model => model.NombreMascota)</th>
+                        <th>@Html.DisplayNameFor(model => model.MontoPago)</th>
+                        <th>@Html.DisplayNameFor(model => model.EstadoCita)</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.IdCita)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CalendarioCita)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Consultorio)</td>
+                            <td>@Html.DisplayFor(modelItem => item.NombreVeterinario)</td>
+                            <td>@Html.DisplayFor(modelItem => item.NombreMascota)</td>
+                            <td>@Html.DisplayFor(modelItem => item.MontoPago)</td>
+                            <td>
+                                <span class="badge badge-pill badge-warning">@item.EstadoDescripcion</span>
+                            </td>
+                            <td>
+                                <!-- Botón "Marcar como No Asistió" -->
+                                <form asp-action="MarcarComoNoAsistio" asp-controller="Cita" method="post" style="display:inline;">
+                                    <input type="hidden" name="idCita" value="@item.IdCita" />
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            onclick="marcarComoNoAsistio(@item.IdCita)">
+                                        <i class="fas fa-user-times"></i> Marcar como No Asistió
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function marcarComoNoAsistio(idCita) {
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "Esta acción marcará la cita como 'No Asistió' y no podrá deshacerse.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, marcar como No Asistió',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Enviar el formulario
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("MarcarComoNoAsistio", "Cita")';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'idCita';
+                    input.value = idCita;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    </script>
+}

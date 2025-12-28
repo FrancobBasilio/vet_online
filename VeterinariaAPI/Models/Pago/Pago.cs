@@ -7,5 +7,8 @@ public class Pago
     public decimal MontoPago { get; set; }
     public string? TipoPago { get; set; }
     public string? NombreCliente { get; set; } 
-    public string? CorreoCliente { get; set; } 
+    public string? CorreoCliente { get; set; }
+
+    //Estado del pago (Pendiente o Realizado)
+    public string EstadoPago { get; set; } = "Pendiente"; 
 }

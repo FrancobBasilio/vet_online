@@ -247,7 +247,9 @@ public class ClienteDAO : ICliente
                 Nombre = dr["Nombre"].ToString(),
                 Especie = dr["Especie"].ToString(),
                 Raza = dr["Raza"].ToString(),
-                FechaNacimiento = Convert.ToDateTime(dr["FechaNacimiento"])
+                FechaNacimiento = Convert.ToDateTime(dr["FechaNacimiento"]),
+              
+            
             });
         }
         return listaMascotas;
@@ -281,30 +283,25 @@ public class ClienteDAO : ICliente
         return mensaje;
     }
 
-    public string EliminarMascota(long id_mascota)
+    public string EliminarMascota(long id_mascota, bool confirmar = false)
     {
         string mensaje = "";
         using var cn = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("sp_eliminarMascota", cn);
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.Parameters.AddWithValue("@id_mascota", id_mascota);
-
-        try
+        cmd.Parameters.AddWithValue("@confirmar", confirmar);
+        cn.Open();
+        using var reader = cmd.ExecuteReader();
+        if (reader.Read())
         {
-            cn.Open();
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                mensaje = reader["Mensaje"].ToString();
-            }
-        }
-        catch (Exception ex)
-        {
-            mensaje = "Error inesperado al intentar eliminar la mascota: " + ex.Message;
+            mensaje = reader["Mensaje"].ToString();
         }
         return mensaje;
     }
+
+
+
 
 
     public MascotaConCliente ObtenerMascotaConCliente(long idMascota)

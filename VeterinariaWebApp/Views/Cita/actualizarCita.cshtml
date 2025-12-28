@@ -5,10 +5,17 @@
     Layout = "~/Views/Shared/_LayoutRecepcionista.cshtml";
 }
 
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
+
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white">
+     
+        <div class="card shadow-sm border-success">
+          
+            <div class="card-header bg-success text-white">
+              
                 <h2 class="card-title mb-0">
                     <i class="fas fa-calendar-edit"></i> Actualizar Cita
                 </h2>
@@ -21,50 +28,69 @@
                     <input asp-for="IdCita" hidden />
                     <input asp-for="IdPago" hidden />
 
+                    <!-- Fecha y Hora  -->
                     <div class="mb-3">
                         <label asp-for="CalendarioCita" class="form-label fw-bold">
-                            <i class="fas fa-calendar-alt"></i>@Html.DisplayNameFor(m => m.CalendarioCita)
+                            <i class="fas fa-calendar-alt me-1 text-success"></i>@Html.DisplayNameFor(m => m.CalendarioCita)
                         </label>
-                        <input asp-for="CalendarioCita" class="form-control" type="datetime-local" />
-                        <span asp-validation-for="CalendarioCita" class="text-danger"></span>
+                        <!-- Cambio 1: Valor inicial correcto -->
+                        <input asp-for="CalendarioCita" type="text" class="form-control form-control-lg"
+                               id="fechaHoraCita" placeholder="Seleccione fecha y hora" readonly
+                               value="@Model.CalendarioCita.ToString("yyyy-MM-ddTHH:mm")" />
+                        <span asp-validation-for="CalendarioCita" class="text-danger small"></span>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Horario de atención: Lunes a Sábado, 8:00 AM - 6:00 PM
+                        </small>
                     </div>
 
+                  
                     <div class="mb-3">
                         <label asp-for="Consultorio" class="form-label fw-bold">
-                            <i class="fas fa-door-open"></i>@Html.DisplayNameFor(m => m.Consultorio)
+                            <i class="fas fa-door-open me-1 text-success"></i>@Html.DisplayNameFor(m => m.Consultorio)
                         </label>
-                        <input asp-for="Consultorio" class="form-control" />
-                        <span asp-validation-for="Consultorio" class="text-danger"></span>
+                        <select asp-for="Consultorio" class="form-select form-select-lg">
+                            <option value="">Seleccione un consultorio</option>
+                            <option value="1">Consultorio 1 - Medicina General</option>
+                            <option value="2">Consultorio 2 - Cirugía</option>
+                            <option value="3">Consultorio 3 - Vacunación</option>
+                            <option value="4">Consultorio 4 - Emergencias</option>
+                            <option value="5">Consultorio 5 - Dermatología</option>
+                        </select>
+                        <span asp-validation-for="Consultorio" class="text-danger small"></span>
                     </div>
 
+                    <!-- Veterinario -->
                     <div class="mb-3">
                         <label asp-for="IdVeterinario" class="form-label fw-bold">
-                            <i class="fas fa-user-md"></i>Veterinario
+                            <i class="fas fa-user-md me-1 text-success"></i>Veterinario
                         </label>
                         @Html.DropDownListFor(model => model.IdVeterinario,
-                                 (IEnumerable<SelectListItem>)ViewBag.veterinarios,
-                                 "(Seleccione el Veterinario)",
-                                 new { @class = "form-select" })
-                        <span asp-validation-for="IdVeterinario" class="text-danger"></span>
+                        (IEnumerable<SelectListItem>)ViewBag.veterinarios,
+                                                "(Seleccione el Veterinario)",
+                                                new { @class = "form-select form-select-lg" })
+                        <span asp-validation-for="IdVeterinario" class="text-danger small"></span>
                     </div>
 
+                    <!-- Mascota -->
                     <div class="mb-4">
                         <label asp-for="IdMascota" class="form-label fw-bold">
-                            <i class="fas fa-paw"></i>Mascota
+                            <i class="fas fa-paw me-1 text-success"></i>Mascota
                         </label>
                         @Html.DropDownListFor(model => model.IdMascota,
-                                 (IEnumerable<SelectListItem>)ViewBag.mascotas,
-                                 "(Seleccione la Mascota)",
-                                 new { @class = "form-select" })
-                        <span asp-validation-for="IdMascota" class="text-danger"></span>
+                                                (IEnumerable<SelectListItem>)ViewBag.mascotas,
+                                                "(Seleccione la Mascota)",
+                                                new { @class = "form-select form-select-lg" })
+                        <span asp-validation-for="IdMascota" class="text-danger small"></span>
                     </div>
 
-                    <div class="d-flex justify-content-start gap-2">
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-sync-alt"></i> Actualizar
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <!-- Cambio 3: Aumentado el 'gap' de 2 a 3 -->
+                        <button type="submit" class="btn btn-warning btn-lg px-4">
+                            <i class="fas fa-sync-alt me-1"></i> Actualizar
                         </button>
-                        <a asp-action="ListadoCitas" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Regresar
+                        <a asp-controller="Cita" asp-action="CitasPendientes" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
                         </a>
                     </div>
                 </form>
@@ -73,109 +99,132 @@
     </div>
 </div>
 
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar Flatpickr con fecha y hora
+            flatpickr("#fechaHoraCita", {
+                locale: "es",
+                enableTime: true,
+                dateFormat: "Y-m-d\\TH:i",
+                altInput: true,
+                altFormat: "d \\de F \\de Y - h:i K",
+                minDate: "today",
+                maxDate: new Date().fp_incr(90), // Máximo 90 días adelante
+                minTime: "08:00",
+                maxTime: "18:00",
+                minuteIncrement: 30,
+                disableMobile: false,
+                disable: [
+                    function(date) {
+                        // Deshabilitar domingos (0 = domingo)
+                        return date.getDay() === 0;
+                    }
+                ],
+                onChange: function(selectedDates, dateStr, instance) {
+                  
+                    document.querySelector('input[name="CalendarioCita"]').value = dateStr;
+                }
+            });
+
+            // Validación del formulario
+            document.getElementById('formCita').addEventListener('submit', function(e) {
+                const fecha = document.getElementById('fechaHoraCita').value;
+                const consultorio = document.querySelector('select[name="Consultorio"]').value;
+                const veterinario = document.querySelector('select[name="IdVeterinario"]').value;
+                const mascota = document.querySelector('select[name="IdMascota"]').value;
+
+                if (!fecha || !consultorio || !veterinario || !mascota) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos incompletos',
+                        text: 'Por favor complete todos los campos requeridos.',
+                        confirmButtonColor: '#28a745'
+                    });
+                    return false;
+                }
+
+                const fechaSeleccionada = new Date(fecha);
+                const fechaActual = new Date();
+
+                if (fechaSeleccionada < fechaActual) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Fecha inválida',
+                        text: 'No puede seleccionar una fecha u hora pasada.',
+                        confirmButtonColor: '#28a745'
+                    });
+                    return false;
+                }
+
+                // Mostrar loading
+                document.querySelector('.btn-warning').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Actualizando...';
+                document.querySelector('.btn-warning').disabled = true;
+            });
+        });
+    </script>
+}
+
 <style>
-    body {
-        background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/images/fondo-veterinaria.jpg') no-repeat center center fixed;
-        background-size: cover;
-        font-family: 'Poppins', sans-serif;
-        color: #333;
+  
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #1e7e34 0%, #28a745 50%, #20c997 100%) !important;
     }
 
-    .container, .row {
-        margin-top: 50px;
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .card {
-        background: rgba(255, 255, 255, 0.96);
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-radius: 15px;
         overflow: hidden;
-        backdrop-filter: blur(6px);
-        border-top: 6px solid #28a745;
     }
 
-    .card-header {
-        background: linear-gradient(90deg, #28a745, #00c97b, #28a745);
-        background-size: 200% 100%;
-        animation: moveGradient 5s infinite linear;
-        color: white;
-        padding: 1.5rem;
-        font-size: 1.3rem;
-        letter-spacing: 0.5px;
-        border-bottom: none;
-    }
-
-        .card-header h2 {
-            font-weight: 600;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-    .card-body {
-        padding: 2rem;
-    }
-
-    .form-label {
-        color: #1b6b3f;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 6px;
-    }
-
-        .form-label i {
-            color: #1b6b3f;
-            font-size: 1.1rem;
-        }
-
-    .form-control,
-    .form-select {
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
         border-radius: 10px;
-        border: 1px solid #ccc;
-        padding: 10px 15px;
         transition: all 0.3s ease;
-        font-size: 0.95rem;
     }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #28a745;
-            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
-            background-color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
         }
 
-    .btn {
-        font-weight: 600;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-        font-size: 0.95rem;
-        padding: 0.8rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 5px;
+    .form-control-lg, .form-select-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
     }
 
     .btn-warning {
-        background: linear-gradient(135deg, #ffc107, #ffb300);
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
         border: none;
         color: #212529;
-        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        transition: all 0.3s ease;
     }
 
         .btn-warning:hover {
-            background: linear-gradient(135deg, #e0a800, #ffca2c);
-            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
         }
 
     .btn-secondary {
         background: #f0f0f0;
         border: 1px solid #ccc;
         color: #555;
+        transition: all 0.3s ease;
     }
 
         .btn-secondary:hover {
@@ -184,17 +233,19 @@
             transform: translateY(-2px);
         }
 
-    @@keyframes moveGradient {
-        0% {
-            background-position: 0% 50%;
-        }
+    
+    .flatpickr-calendar {
+        border-radius: 10px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    }
 
-        50% {
-            background-position: 100% 50%;
-        }
+    .flatpickr-day.selected {
+        background: #28a745 !important;
+        border-color: #28a745 !important;
+    }
 
-        100% {
-            background-position: 0% 50%;
-        }
+    .flatpickr-time input:hover,
+    .flatpickr-time input:focus {
+        background: #e8f5e9 !important;
     }
 </style>

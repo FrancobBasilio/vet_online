@@ -75,11 +75,13 @@
                         <h6 class="collapse-header">Gestión de Veterinarios:</h6>
                         <a class="collapse-item" href="@Url.Action("listarVeterinarios", "Recepcionista")">Ver Veterinarios</a>
                         <a class="collapse-item" href="@Url.Action("NuevoVeterinario", "Recepcionista")">Agregar Veterinario</a>
+                 
                     </div>
                 </div>
             </li>
 
-            <hr class="sidebar-divider" />
+
+
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCitas" aria-expanded="true" aria-controls="collapseCitas">
@@ -89,10 +91,16 @@
                 <div id="collapseCitas" class="collapse" aria-labelledby="headingCitas" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Gestión de Citas:</h6>
-                        <a class="collapse-item" href="@Url.Action("ListadoCitas", "Cita")">Ver Citas</a>
+                        <a class="collapse-item" href="@Url.Action("CitasPendientes", "Cita")">Citas Pendientes</a>
+                        <a class="collapse-item" href="@Url.Action("CitasVencidas", "Cita")">Citas Vencidas</a>
+                        <a class="collapse-item" href="@Url.Action("CitasAtendidas", "Cita")">Citas Atendidas</a>
+                        <a class="collapse-item" href="@Url.Action("CitasCanceladas", "Cita")">Citas Canceladas</a>
                     </div>
                 </div>
             </li>
+
+
+
 
             <hr class="sidebar-divider" />
 
@@ -103,8 +111,9 @@
                 </a>
                 <div id="collapsePagos" class="collapse" aria-labelledby="headingPagos" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Gestión de Pagos:</h6>
-                        <a class="collapse-item" href="@Url.Action("PagosRecepcionista", "Pago")">Ver Pagos Realizados</a>
+                        <h6 class="collapse-header">Gestión de Pagos:</h6>                      
+                        <a class="collapse-item" asp-controller="Pago" asp-action="PagosPendientes">Pagos Pendientes</a>
+                        <a class="collapse-item" asp-controller="Pago" asp-action="PagosRealizados">Pagos Realizados</a>
                     </div>
                 </div>
             </li>
@@ -144,9 +153,14 @@
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
+                        <li class="nav-item d-none d-sm-flex align-items-center mr-3">
+                            <span class="text-gray-600 small">
+                                <i class="fas fa-hand-sparkles mr-1"></i>¡Hola, <strong>@(Context.Session.GetString("NombreUsuario") ?? "Usuario")</strong>!
+                            </span>
+                        </li>
+
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Recepcionista</span>
                                 <img class="img-profile rounded-circle" src="~/img/undraw_profile.svg">
                             </a>
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
@@ -219,34 +233,37 @@
 <style>
 
     body {
-        background-color: #c8f5d2; 
-        color: #0b3d20; 
+        background-color: #fefae0;
+        
+        color: #dda15e;
     }
 
     .bg-gradient-primary {
-        background: linear-gradient(180deg, #1e7e34 0%, #28a745 60%, #3bc45b 100%) !important;
-        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+        background: linear-gradient(180deg, #bc6e37 0%, #b8a745 60%, #bbc45b 100%) !important;
+        box-shadow: 0 0 5px rgba(20, 157, 29, 0.5);
     }
 
     .sidebar-dark .nav-link {
-        color: #e8ffe8 !important;
+        color: #dda15e;
+        !important;
         transition: all 0.3s ease;
     }
 
         .sidebar-dark .nav-link:hover {
             color: #ffffff !important;
-            background-color: rgba(56, 192, 75, 0.3) !important;
+            background-color: rgba(26, 192, 75, 0.2) !important;
             transform: scale(1.03);
         }
 
     .sidebar-dark .nav-item.active .nav-link {
-        background-color: #1e7e34 !important;
+        background-color: #bc6c25 !important;
         color: #fff !important;
         box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
     .sidebar .nav-link i {
-        color: #a7f5b8 !important;
+        color: #dda15e;
+        !important;
         transition: all 0.3s ease;
     }
 
@@ -262,7 +279,8 @@
     }
 
     .sidebar-brand-icon .fas {
-        color: #a7f5b8 !important;
+        color: #dda15e;
+        !important;
         font-size: 1.8rem;
         transition: transform 0.3s ease, color 0.3s ease;
     }
@@ -277,36 +295,38 @@
     }
 
     .collapse-inner {
-        background-color: #ecf9ef !important;
-        border-left: 4px solid #28a745 !important;
+        background-color: #fefae0 !important;
+        border-left: 4px solid #e1a645 !important;
         transition: background-color 0.3s ease;
     }
 
         .collapse-inner .collapse-item {
-            color: #155724 !important;
+            color: #dda15e;
+            !important;
             font-weight: 500;
             transition: all 0.2s ease;
         }
 
             .collapse-inner .collapse-item:hover {
                 color: #fff !important;
-                background-color: #28a745 !important;
+                background-color: #dda15e !important;
                 border-radius: 5px;
             }
 
     .navbar-light.bg-white {
-        background-color: #e8f8ec !important;
+        background-color: #fefae0 !important;
         box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
     }
 
     .topbar .nav-link span.text-gray-600 {
-        color: #0b3d20 !important;
+        color: #dda15e;
+        !important;
         font-weight: 600;
     }
 
     .sticky-footer {
-        background-color: #eaf8ed !important;
-        color: #155724;
+        background-color: #fefae0 !important;
+        color: #dda15e;
         font-weight: 600;
     }
 
@@ -325,7 +345,7 @@
     .btn-secondary {
         background-color: #6fdc8f !important;
         border-color: #6fdc8f !important;
-        color: #0b3d20;
+        color: #606c38;
         font-weight: 500;
     }
 
@@ -341,18 +361,20 @@
 
     .modal-content {
         background-color: #f4fff6 !important;
-        color: #0b3d20;
-        border: 2px solid #a7f5b8;
+        color: #606c38;
+        border: 2px solid #fefae0;
+        ;
         border-radius: 10px;
     }
 
     .scroll-to-top {
-        background-color: #28a745 !important;
+        background-color: #dda15e;
+        !important;
         box-shadow: 0 2px 6px rgba(40, 167, 69, 0.4);
     }
 
         .scroll-to-top:hover {
-            background-color: #1e7e34 !important;
+            background-color: #fefae0 !important;
         }
 
     a, .nav-link span {
@@ -365,27 +387,29 @@
         }
 
     table.dataTable {
-        border: 1px solid #c3e6cb;
+        border: 1px solid #fefae0;
+        ;
         background-color: #f9fff9;
     }
 
         table.dataTable thead {
-            background-color: #28a745;
+            background-color: #dda15e;
+            ;
             color: #fff;
         }
 
         table.dataTable tbody tr:hover {
-            background-color: #e2fbe2;
+            background-color: #fefae0;
         }
 
     .chart-area, .chart-pie {
         background-color: #f0fdf4;
         border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(30, 126, 52, 0.2);
+        box-shadow: 0 2px 2px rgba(30, 126, 52, 0.2);
     }
 
     .shadow, .shadow-sm {
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3) !important;
+        box-shadow: 0 2px 2px rgba(40, 167, 69, 0.3) !important;
     }
 
 </style>

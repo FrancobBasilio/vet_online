@@ -62,4 +62,27 @@ public class UsuarioDAO : IUsuario
         }
         return resultado;
     }
+
+
+    public string ObtenerNombreUsuario(long id)
+    {
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_obtenerNombreUsuario", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id", id);
+
+        try
+        {
+            cn.Open();
+            var nombre = cmd.ExecuteScalar() as string;
+            return nombre ?? "Usuario";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener nombre de usuario: {ex.Message}");
+            return "Usuario";
+        }
+
+
+    }
 }

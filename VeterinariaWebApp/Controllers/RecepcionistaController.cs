@@ -1,12 +1,13 @@
-﻿using VeterinariaWebApp.Models.Usuario.Veterinario;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Text;
-using VeterinariaWebApp.Models.Usuario;
-using VeterinariaWebApp.Models.Usuario.Cliente;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Rotativa.AspNetCore;
 using Rotativa.AspNetCore.Options;
+using System.Text;
+using VeterinariaWebApp.Models.Cita;
+using VeterinariaWebApp.Models.Usuario;
+using VeterinariaWebApp.Models.Usuario.Cliente;
+using VeterinariaWebApp.Models.Usuario.Veterinario;
 
 namespace VeterinariaWebApp.Controllers
 {
@@ -21,7 +22,44 @@ namespace VeterinariaWebApp.Controllers
             _httpClient.BaseAddress = _baseUri;
         }
 
-        // Método corregido: Cambiado de "listarVeterinariosFront" a "listaVeterinarios"
+
+
+        public async Task<IActionResult> Index()
+        {
+            var conteoPendientes = await ObtenerConteoCitas("P");
+            var conteoVencidas = await ObtenerConteoCitas("P", soloVencidas: true);
+            var conteoAtendidas = await ObtenerConteoCitas("A");
+            var conteoCanceladas = await ObtenerConteoCitas("C");
+
+            ViewBag.CitasPendientes = conteoPendientes;
+            ViewBag.CitasVencidas = conteoVencidas;
+            ViewBag.CitasAtendidas = conteoAtendidas;
+            ViewBag.CitasCanceladas = conteoCanceladas;
+
+            return View();
+        }
+
+
+        private async Task<int> ObtenerConteoCitas(string estado, bool soloVencidas = false)
+        {
+            var url = soloVencidas
+                ? $"{_baseUri}/Cita/listaCitasVencidas"
+                : $"{_baseUri}/Cita/listaCitasPorEstado?estado={estado}";
+
+            var response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var lista = JsonConvert.DeserializeObject<List<Cita>>(json);
+                return lista.Count;
+            }
+            return 0;
+        }
+
+
+
+
+
         public List<Veterinario> ArregloVeterinarios()
         {
             List<Veterinario> aVeterinarios = new List<Veterinario>();
@@ -42,7 +80,7 @@ namespace VeterinariaWebApp.Controllers
             return aVeterinarios;
         }
 
-        // Método corregido: Cambiado de "listarClientesFront" a "listaClientes"
+      
         public List<Cliente> ArregloClientes()
         {
             List<Cliente> aClientes = new List<Cliente>();
@@ -159,8 +197,8 @@ namespace VeterinariaWebApp.Controllers
 
         public IActionResult listarVeterinarios()
         {
-            var veterinarios = ArregloVeterinarios(); // Esta línea ya no debería ser null.
-            return View(veterinarios); // Pasamos la lista directamente.
+            var veterinarios = ArregloVeterinarios(); 
+            return View(veterinarios); 
         }
 
         public IActionResult listarVeterinariosPDF()
@@ -197,8 +235,10 @@ namespace VeterinariaWebApp.Controllers
         public IActionResult listarClientes()
         {
             var clientes = ArregloClientes(); 
-            return View(clientes); // Pasamos la lista directamente.
+            return View(clientes);
         }
+
+
 
         public IActionResult listarClientesPDF()
         {
@@ -211,9 +251,6 @@ namespace VeterinariaWebApp.Controllers
             };
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+   
     }
 }

@@ -24,6 +24,13 @@ public class CitaDAO : ICita
     public string AgregarCita(CitaO obj)
     {
         string mensaje = "";
+
+       
+        if (ExisteCitaEnHorario(0, obj.CalendarioCita, obj.IdVeterinario, obj.Consultorio))
+        {
+            return "Lo sentimos, ese horario ya está ocupado. Por favor, elija otra fecha u hora.";
+        }
+
         using var cn = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("sp_agregarCita", cn);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -32,6 +39,7 @@ public class CitaDAO : ICita
         cmd.Parameters.AddWithValue("@veterinario", obj.IdVeterinario);
         cmd.Parameters.AddWithValue("@mascota", obj.IdMascota);
         cmd.Parameters.AddWithValue("@pago", obj.IdPago);
+
         try
         {
             cn.Open();
@@ -40,7 +48,7 @@ public class CitaDAO : ICita
         }
         catch (Exception ex)
         {
-            mensaje = "Error al registrar la cita: " + ex.Message;
+            mensaje = "Error al registrar la cita:" + ex.Message;
         }
         return mensaje;
     }
@@ -48,17 +56,70 @@ public class CitaDAO : ICita
 
 
 
-
-
-
     public CitaO BuscarCita(long id)
     {
-        return ListarCitasO().FirstOrDefault(c => c.IdCita == id);
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_buscarCitaPorId", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@idCita", id);
+
+        try
+        {
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                return new CitaO
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    IdVeterinario = Convert.ToInt64(dr["ide_vet"]),
+                    IdMascota = Convert.ToInt64(dr["ide_mas"]),
+                    IdPago = Convert.ToInt64(dr["ide_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al buscar cita por ID: {ex.Message}");
+        }
+        return null;
     }
+
+
 
     public Cita BuscarCitaFront(long id)
     {
-        return ListarCitas().FirstOrDefault(c => c.IdCita == id);
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_buscarCitaPorId", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@idCita", id);
+
+        try
+        {
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                return new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al buscar cita front por ID: {ex.Message}");
+        }
+        return null;
     }
 
     public void EliminarCita(long id)
@@ -79,82 +140,227 @@ public class CitaDAO : ICita
         }
     }
 
-    public IEnumerable<Cita> ListarCitasPorFecha(int dia, int mes, int año)
+
+    //VALIDACION DE DISPONIBILIDAD DE CITA
+    private bool ExisteCitaEnHorario(long idCita, DateTime fechaHora, long idVeterinario, long idConsultorio)
+    {
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_verificarDisponibilidadCita", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@idCita", idCita);
+        cmd.Parameters.AddWithValue("@fechaHora", fechaHora);
+        cmd.Parameters.AddWithValue("@idVeterinario", idVeterinario);
+        cmd.Parameters.AddWithValue("@idConsultorio", idConsultorio);
+
+        try
+        {
+            cn.Open();
+            var result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt64(result) > 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al verificar disponibilidad: {ex.Message}");
+            return false;
+        }
+    }
+
+
+
+
+
+
+    //LISTADO DE CITAS PENDIENTES, VENCIDAS, ATENDIDAS, CANCELADAS
+
+    public List<Cita> ListarCitasPendientes()
     {
         var lista = new List<Cita>();
         using var cn = new SqlConnection(_connectionString);
-        using var cmd = new SqlCommand("sp_obtenerCitasPorFecha", cn);
+        using var cmd = new SqlCommand("sp_listarCitasPendientes", cn);
         cmd.CommandType = CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue("@dia", dia);
-        cmd.Parameters.AddWithValue("@mes", mes);
-        cmd.Parameters.AddWithValue("@año", año);
 
-        cn.Open();
-        using var dr = cmd.ExecuteReader();
-        while (dr.Read())
+        try
         {
-            lista.Add(new Cita
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
             {
-                IdCita = Convert.ToInt64(dr["ide_cit"]),
-                CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
-                Consultorio = Convert.ToInt64(dr["con_cit"]),
-                NombreVeterinario = dr["Veterinario"].ToString(),
-                NombreMascota = dr["Mascota"].ToString(),
-                MontoPago = Convert.ToDecimal(dr["mon_pag"])
-            });
+                lista.Add(new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al listar citas pendientes: " + ex.Message);
         }
         return lista;
     }
 
-    public IEnumerable<Cita> ListarCitas()
+    //--------------------------------------------------
+    public List<Cita> ListarCitasVencidas()
     {
         var lista = new List<Cita>();
         using var cn = new SqlConnection(_connectionString);
-        using var cmd = new SqlCommand("sp_listarCitasFront", cn);
+        using var cmd = new SqlCommand("sp_listarCitasVencidas", cn);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cn.Open();
-        using var dr = cmd.ExecuteReader();
-        while (dr.Read())
+        try
         {
-            lista.Add(new Cita
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
             {
-                IdCita = Convert.ToInt64(dr["ide_cit"]),
-                CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
-                Consultorio = Convert.ToInt64(dr["con_cit"]),
-                NombreVeterinario = dr["NombreVeterinario"].ToString(),
-                NombreMascota = dr["NombreMascota"].ToString(),
-                MontoPago = Convert.ToDecimal(dr["mon_pag"]),
-                EstadoCita = dr["est_cit"].ToString() ?? "P"
-            });
+                lista.Add(new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al listar citas vencidas: " + ex.Message);
         }
         return lista;
     }
 
-    public IEnumerable<CitaO> ListarCitasO()
+    public string CancelarCitaPorInasistencia(long idCita)
     {
-        var lista = new List<CitaO>();
         using var cn = new SqlConnection(_connectionString);
-        using var cmd = new SqlCommand("sp_listarCitasBack", cn);
+        using var cmd = new SqlCommand("sp_cancelarCitaPorInasistencia", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@idCita", idCita);
+
+        try
+        {
+            cn.Open();
+            cmd.ExecuteNonQuery();
+            return "Cita cancelada por inasistencia correctamente.";
+        }
+        catch (Exception ex)
+        {
+            return "Error al cancelar la cita: " + ex.Message;
+        }
+    }
+
+    //------------------------------------
+
+    public List<Cita> ListarCitasAtendidas()
+    {
+        var lista = new List<Cita>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarCitasAtendidas", cn);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cn.Open();
-        using var dr = cmd.ExecuteReader();
-        while (dr.Read())
+        try
         {
-            lista.Add(new CitaO
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
             {
-                IdCita = Convert.ToInt64(dr["ide_cit"]),
-                CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
-                Consultorio = Convert.ToInt64(dr["con_cit"]),
-                IdVeterinario = Convert.ToInt64(dr["ide_vet"]),
-                IdMascota = Convert.ToInt64(dr["ide_mas"]),
-                IdPago = Convert.ToInt64(dr["ide_pag"]),
-                EstadoCita = dr["est_cit"].ToString() ?? "P"
-            });
+                lista.Add(new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al listar citas atendidas: " + ex.Message);
         }
         return lista;
     }
+
+    //Listado de citas Canceladas
+
+    public List<Cita> ListarCitasCanceladas()
+    {
+        var lista = new List<Cita>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarCitasCanceladas", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        try
+        {
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                lista.Add(new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al listar citas canceladas: " + ex.Message);
+        }
+        return lista;
+    }
+
+
+
+    // LISTAR CITAS POR ESTADO 
+
+    public List<Cita> ListarCitasPorEstado(string estado)
+    {
+        var lista = new List<Cita>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarCitasPorEstado", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@estado", estado);
+
+        try
+        {
+            cn.Open();
+            using var dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                lista.Add(new Cita
+                {
+                    IdCita = Convert.ToInt64(dr["ide_cit"]),
+                    CalendarioCita = Convert.ToDateTime(dr["cal_cit"]),
+                    Consultorio = Convert.ToInt64(dr["con_cit"]),
+                    NombreVeterinario = dr["NombreVeterinario"].ToString(),
+                    NombreMascota = dr["NombreMascota"].ToString(),
+                    MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                    EstadoCita = dr["est_cit"].ToString()
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al listar citas por estado: {ex.Message}");
+        }
+        return lista;
+    }
+
 
 
 
@@ -163,6 +369,13 @@ public class CitaDAO : ICita
     public string ModificarCita(CitaO obj)
     {
         string mensaje = "";
+
+        // Verificar disponibilidad ANTES de actualizar
+        if (ExisteCitaEnHorario(obj.IdCita, obj.CalendarioCita, obj.IdVeterinario, obj.Consultorio))
+        {
+            return "Lo sentimos, ese horario ya está ocupado. Por favor, elija otra fecha u hora.";
+        }
+
         using var cn = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("sp_actualizarCita", cn);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -172,6 +385,7 @@ public class CitaDAO : ICita
         cmd.Parameters.AddWithValue("@veterinario", obj.IdVeterinario);
         cmd.Parameters.AddWithValue("@mascota", obj.IdMascota);
         cmd.Parameters.AddWithValue("@pago", obj.IdPago);
+
         try
         {
             cn.Open();
@@ -180,10 +394,13 @@ public class CitaDAO : ICita
         }
         catch (Exception ex)
         {
-            mensaje = "Error al actualizar la cita: " + ex.Message;
+            mensaje = "Error al actualizar la cita:" + ex.Message;
         }
         return mensaje;
     }
+
+
+
 
     // Nuevo método para actualizar solo el estado de la cita
     public string ActualizarEstadoCita(long idCita, string estado)

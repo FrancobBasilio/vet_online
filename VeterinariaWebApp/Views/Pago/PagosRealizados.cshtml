@@ -1,16 +1,17 @@
 ﻿@model IEnumerable<VeterinariaWebApp.Models.Pago.Pago>
 
 @{
-    ViewData["Title"] = "Mis Pagos";
-    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    ViewData["Title"] = "Pagos Realizados";
+    Layout = "~/Views/Shared/_LayoutRecepcionista.cshtml";
 }
 
-<h1>Mis Pagos</h1>
+
+<h1>Pagos Realizados</h1>
 <hr>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Pagos Registrados</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Pagos con Cita Asociada</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -23,7 +24,7 @@
                         <th>@Html.DisplayNameFor(model => model.TipoPago)</th>
                         <th>@Html.DisplayNameFor(model => model.NombreCliente)</th>
                         <th>@Html.DisplayNameFor(model => model.CorreoCliente)</th>
-                        <th>@Html.DisplayNameFor(model => model.EstadoPago)</th> <!-- Nueva columna -->
+                        <th>@Html.DisplayNameFor(model => model.EstadoPago)</th>
                         <th>ACCIONES</th>
                     </tr>
                 </thead>
@@ -37,31 +38,11 @@
                             <td>@Html.DisplayFor(modelItem => item.TipoPago)</td>
                             <td>@Html.DisplayFor(modelItem => item.NombreCliente)</td>
                             <td>@Html.DisplayFor(modelItem => item.CorreoCliente)</td>
+                            <td><span class="badge bg-success">Realizado</span></td>
                             <td>
-                                @if (item.EstadoPago == "Pendiente")
-                                {
-                                    <span class="badge bg-warning text-dark">Pendiente</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-success">Realizado</span>
-                                }
-                            </td>
-                            <td>
-                                <a href="@Url.Action("DetallePago", "Pago", new { id = item.IdPago })" class="btn btn-info me-2">
+                                <a href="@Url.Action("DetallePago", "Pago", new { id = item.IdPago })" class="btn btn-info">
                                     <i class="fas fa-info-circle"></i>
                                 </a>
-                                <!-- Botón de Eliminar (solo para pagos pendientes) -->
-                                @if (item.EstadoPago == "Pendiente")
-                                {
-                                    <form asp-action="EliminarPago" asp-controller="Pago" asp-route-id="@item.IdPago" method="post" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-danger"
-                                                onclick="return confirm('¿Está seguro de eliminar este pago pendiente?');">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                }
                             </td>
                         </tr>
                     }
@@ -70,3 +51,4 @@
         </div>
     </div>
 </div>
+

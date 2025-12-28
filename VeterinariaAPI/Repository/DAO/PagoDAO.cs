@@ -32,20 +32,74 @@ public class PagoDAO : IPago
                 HoraPago = Convert.ToDateTime(dr[1]),
                 MontoPago = Convert.ToDecimal(dr[2]),
                 TipoPago = dr[3].ToString(),
-                CorreoCliente = dr[4].ToString(), // Cambiado
-                NombreCliente = dr[5].ToString()  // Cambiado
+                CorreoCliente = dr[4].ToString(), 
+                NombreCliente = dr[5].ToString()  
             });
         }
         return pagos;
     }
 
-    public IEnumerable<Pago> ListarPagosPorCliente(long id) // Cambiado nombre
+
+
+    // Listar PAGOS PENDIENTES para Recep
+    public IEnumerable<Pago> ListarPagosPendientes()
     {
         List<Pago> pagos = new List<Pago>();
         using var cn = new SqlConnection(_connectionString);
-        using var cmd = new SqlCommand("sp_listarPagosPorCliente", cn); // Cambiado SP
+        using var cmd = new SqlCommand("sp_listarPagosPendientes", cn);
         cmd.CommandType = CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue("@ide_usr", id); // Cambiado nombre del parámetro
+        cn.Open();
+        using var dr = cmd.ExecuteReader();
+        while (dr.Read())
+        {
+            pagos.Add(new Pago()
+            {
+                IdPago = Convert.ToInt64(dr["ide_pag"]),
+                HoraPago = Convert.ToDateTime(dr["hor_pag"]),
+                MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                TipoPago = dr["nom_pay"].ToString(),
+                CorreoCliente = dr["cor_usr"].ToString(),
+                NombreCliente = dr["nombre_completo"].ToString(),
+                EstadoPago = "Pendiente" 
+            });
+        }
+        return pagos;
+    }
+
+    //  Listar PAGOS REALIZADOS Recep
+    public IEnumerable<Pago> ListarPagosRealizados()
+    {
+        List<Pago> pagos = new List<Pago>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarPagosRealizados", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cn.Open();
+        using var dr = cmd.ExecuteReader();
+        while (dr.Read())
+        {
+            pagos.Add(new Pago()
+            {
+                IdPago = Convert.ToInt64(dr["ide_pag"]),
+                HoraPago = Convert.ToDateTime(dr["hor_pag"]),
+                MontoPago = Convert.ToDecimal(dr["mon_pag"]),
+                TipoPago = dr["nom_pay"].ToString(),
+                CorreoCliente = dr["cor_usr"].ToString(),
+                NombreCliente = dr["nombre_completo"].ToString(),
+                EstadoPago = "Realizado" 
+            });
+        }
+        return pagos;
+    }
+
+
+
+    public IEnumerable<Pago> ListarPagosPorCliente(long id)
+    {
+        List<Pago> pagos = new List<Pago>();
+        using var cn = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand("sp_listarPagosPorCliente", cn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@ide_usr", id);
         cn.Open();
         using var dr = cmd.ExecuteReader();
         while (dr.Read())
@@ -56,8 +110,10 @@ public class PagoDAO : IPago
                 HoraPago = Convert.ToDateTime(dr[1]),
                 MontoPago = Convert.ToDecimal(dr[2]),
                 TipoPago = dr[3].ToString(),
-                CorreoCliente = dr[4].ToString(), // Cambiado
-                NombreCliente = dr[5].ToString()  // Cambiado
+                CorreoCliente = dr[4].ToString(),
+                NombreCliente = dr[5].ToString(),
+             
+                EstadoPago = dr["EstadoPago"].ToString()
             });
         }
         return pagos;
@@ -96,7 +152,7 @@ public class PagoDAO : IPago
                 HoraPago = Convert.ToDateTime(dr[1]),
                 MontoPago = Convert.ToDecimal(dr[2]),
                 TipoPago = Convert.ToInt64(dr[3]),
-                IdCliente = Convert.ToInt64(dr[4]) // Cambiado
+                IdCliente = Convert.ToInt64(dr[4]) 
             };
         }
         return pago;
@@ -119,8 +175,8 @@ public class PagoDAO : IPago
                 HoraPago = Convert.ToDateTime(dr[1]),
                 MontoPago = Convert.ToDecimal(dr[2]),
                 TipoPago = dr[3].ToString(),
-                NombreCliente = dr[4].ToString(), // Cambiado
-                CorreoCliente = dr[5].ToString()  // Cambiado
+                NombreCliente = dr[4].ToString(), 
+                CorreoCliente = dr[5].ToString()  
             };
         }
         return pago;
@@ -132,16 +188,17 @@ public class PagoDAO : IPago
         using var cn = new SqlConnection(_connectionString);
         using var cmd = new SqlCommand("sp_actualizarPago", cn);
         cmd.CommandType = CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue("@cliente", pago.IdCliente); // Cambiado
+        cmd.Parameters.AddWithValue("@cliente", pago.IdCliente); 
         cmd.Parameters.AddWithValue("@ide_pag", pago.IdPago);
         cmd.Parameters.AddWithValue("@hor_pag", pago.HoraPago);
         cmd.Parameters.AddWithValue("@mon_pag", pago.MontoPago);
-        cmd.Parameters.AddWithValue("@ide_pay", pago.TipoPago); // Corregido nombre
+        cmd.Parameters.AddWithValue("@ide_pay", pago.TipoPago); 
         cn.Open();
         cmd.ExecuteNonQuery();
         respuesta = "Pago actualizado correctamente";
         return respuesta;
     }
+
 
     public string EliminarPago(long id)
     {
@@ -155,4 +212,5 @@ public class PagoDAO : IPago
         respuesta = "Pago eliminado correctamente";
         return respuesta;
     }
+
 }

@@ -18,7 +18,7 @@ public interface ICliente
     IEnumerable<Mascota> ListarMascotasPorCliente(long id_usuario);
 
     string ActualizarMascota(Mascota mascota);
-    string EliminarMascota(long id_mascota);
+    string EliminarMascota(long id_mascota, bool confirmar = false);
 
 
     MascotaConCliente ObtenerMascotaConCliente(long idMascota);

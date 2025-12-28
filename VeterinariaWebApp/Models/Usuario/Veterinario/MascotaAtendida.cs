@@ -1,10 +1,9 @@
 using System.ComponentModel;
 
 namespace VeterinariaWebApp.Models.Usuario.Veterinario;
-
 /// <summary>
 /// Modelo para mascotas atendidas por el veterinario, incluye historial médico
-/// </summary>
+/// <summary>
 public class MascotaAtendida
 {
     public long ide_cit { get; set; }

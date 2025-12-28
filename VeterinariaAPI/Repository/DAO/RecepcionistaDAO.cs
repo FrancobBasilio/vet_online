@@ -69,7 +69,7 @@ public class RecepcionistaDAO : IRecepcionista
         return listaRecepcionistas;
     }
 
-    public string AgregarRecepcionista(RecepcionistaO recepcionista) // Estilo PascalCase
+    public string AgregarRecepcionista(RecepcionistaO recepcionista) 
     {
         string mensaje = "";
         using var cn = new SqlConnection(_connectionString);

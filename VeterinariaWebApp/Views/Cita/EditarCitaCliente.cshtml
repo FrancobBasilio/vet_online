@@ -37,14 +37,18 @@
                     </div>
                 </div>
 
+
+
                 <div class="card-body p-4">
-                    @if (!string.IsNullOrEmpty(ViewBag.Mensaje))
+                    @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.Mensaje
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
+
+
 
                     <form asp-action="EditarCitaClientePost" method="post" id="formEditarCita">
                         <input asp-for="IdCita" type="hidden" />
@@ -60,7 +64,10 @@
                                    id="fechaHoraCita" placeholder="Seleccione fecha y hora" readonly />
                             <span asp-validation-for="CalendarioCita" class="text-danger small"></span>
                             <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>Horario de atención: Lunes a Sábado, 8:00 AM - 6:00 PM
+                                <i class="fas fa-info-circle me-1"></i>
+                                Horario de atención: Lunes a Sábado, 8:00 AM - 6:00 PM.
+                                <strong>Cada cita tiene una duración de 30 minutos.</strong>
+                                Por favor, seleccione un horario disponible.
                             </small>
                         </div>
 
