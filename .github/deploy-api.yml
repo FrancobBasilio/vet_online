@@ -1,0 +1,43 @@
+name: Deploy VeterinariaAPI to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "VeterinariaAPI/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: mivet-api
+  DOTNET_VERSION: "8.0.x"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restaurar dependencias
+        run: dotnet restore ./VeterinariaAPI
+
+      - name: Build
+        run: dotnet build ./VeterinariaAPI --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ./VeterinariaAPI --configuration Release --no-build --output ./publish-api
+
+      - name: Deploy a Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: ./publish-api
