@@ -25,7 +25,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync($"/api/Usuario/VerificarLogin?uid={Uri.EscapeDataString(uid)}&pwd={Uri.EscapeDataString(pwd)}");
+                var response = await client.GetAsync($"Usuario/VerificarLogin?uid={Uri.EscapeDataString(uid)}&pwd={Uri.EscapeDataString(pwd)}");
                 if (response.IsSuccessStatusCode)
                 {
                     var contenido = await response.Content.ReadAsStringAsync();
@@ -44,7 +44,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync($"/api/Usuario/ObtenerIdUsuario?correo={Uri.EscapeDataString(uid)}");
+                var response = await client.GetAsync($"Usuario/ObtenerIdUsuario?correo={Uri.EscapeDataString(uid)}");
                 if (response.IsSuccessStatusCode)
                 {
                     var contenido = await response.Content.ReadAsStringAsync();
@@ -63,7 +63,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync("/api/Usuario/ListarDocumentos");
+                var response = await client.GetAsync("Usuario/ListarDocumentos");
                 if (response.IsSuccessStatusCode)
                 {
                     var data = await response.Content.ReadAsStringAsync();
@@ -93,7 +93,7 @@ namespace VeterinariaWebApp.Controllers
                 var client = GetClient();
                 var json = JsonConvert.SerializeObject(cliente);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync("/api/Cliente/nuevoCliente", content);
+                var response = await client.PostAsync("Cliente/nuevoCliente", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -177,7 +177,7 @@ namespace VeterinariaWebApp.Controllers
             var nombreCompleto = await ObtenerNombreUsuarioAsync(idUsuario);
             HttpContext.Session.SetString("NombreUsuario", nombreCompleto);
 
-        
+
 
             return RedirectToAction("Index", rol);
         }
@@ -212,7 +212,7 @@ namespace VeterinariaWebApp.Controllers
             if (resultado != "success")
             {
                 // Verificar si el error es por correo duplicado
-                if (resultado.Contains("duplicate", StringComparison.OrdinalIgnoreCase) || 
+                if (resultado.Contains("duplicate", StringComparison.OrdinalIgnoreCase) ||
                     resultado.Contains("existe", StringComparison.OrdinalIgnoreCase) ||
                     resultado.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
                 {
@@ -246,7 +246,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync($"/api/Usuario/ObtenerNombreUsuario?id={idUsuario}");
+                var response = await client.GetAsync($"Usuario/ObtenerNombreUsuario?id={idUsuario}");
 
                 if (response.IsSuccessStatusCode)
                 {

@@ -1,34 +1,29 @@
 ﻿using VeterinariaWebApp.Models.Pago;
-using VeterinariaWebApp.Models.Usuario; 
-using VeterinariaWebApp.Models.Usuario.Cliente; 
+using VeterinariaWebApp.Models.Usuario;
+using VeterinariaWebApp.Models.Usuario.Cliente;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using Rotativa.AspNetCore;
-using System.Net.Http;
 using System.Text;
 
 namespace VeterinariaWebApp.Controllers;
 
 public class PagoController : Controller
 {
-    private readonly Uri _baseUri = new("https://localhost:7054/api");
     private readonly HttpClient _httpClient;
 
-    public PagoController()
+    public PagoController(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = _baseUri;
+        _httpClient = httpClientFactory.CreateClient("ClinicaAPI");
     }
 
-    
     public List<Pago> listadoPagosGeneral()
     {
         List<Pago> aPagos = new List<Pago>();
         try
         {
-            string url = $"{_baseUri}/Pago/ListarPagosGeneral";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync("Pago/ListarPagosGeneral").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -42,14 +37,12 @@ public class PagoController : Controller
         return aPagos;
     }
 
-
     public Pago ObtenerPagoPorId(long id)
     {
         Pago pago = new Pago();
         try
         {
-            string url = $"{_baseUri}/Pago/ObtenerPagoPorIdFront/{id}";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync($"Pago/ObtenerPagoPorIdFront/{id}").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -63,7 +56,6 @@ public class PagoController : Controller
         return pago;
     }
 
-
     public List<Pago> listadoPagosPorCliente(long token)
     {
         List<Pago> aPagos = new List<Pago>();
@@ -72,8 +64,7 @@ public class PagoController : Controller
 
         try
         {
-            string url = $"{_baseUri}/Pago/ListarPagosPorCliente/{token}";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync($"Pago/ListarPagosPorCliente/{token}").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -81,7 +72,6 @@ public class PagoController : Controller
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-       
                 Console.WriteLine("Token inválido o usuario no autenticado.");
             }
         }
@@ -92,23 +82,18 @@ public class PagoController : Controller
         return aPagos;
     }
 
-
     public async Task<IActionResult> PagosPendientes()
     {
         var pagos = await ListarPagosPendientes();
         return View(pagos);
     }
 
-
-
-    //Listar PAGOS PENDIENTES
     public async Task<List<Pago>> ListarPagosPendientes()
     {
         List<Pago> pagos = new List<Pago>();
         try
         {
-            string url = $"{_baseUri}/Pago/ListarPagosPendientes";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync("Pago/ListarPagosPendientes");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -122,16 +107,12 @@ public class PagoController : Controller
         return pagos;
     }
 
-
-
-    // Listar PAGOS REALIZADOS 
     public async Task<List<Pago>> ListarPagosRealizados()
     {
         List<Pago> pagos = new List<Pago>();
         try
         {
-            string url = $"{_baseUri}/Pago/ListarPagosRealizados";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync("Pago/ListarPagosRealizados");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -145,27 +126,18 @@ public class PagoController : Controller
         return pagos;
     }
 
-
     public async Task<IActionResult> PagosRealizados()
     {
         var pagos = await ListarPagosRealizados();
         return View(pagos);
     }
 
-
-
-
-
-
-
-
     public List<UserDoc> listadoTipoDocumentos()
     {
         List<UserDoc> aTDocumentos = new List<UserDoc>();
         try
         {
-            string url = $"{_baseUri}/Usuario/ListarDocumentos";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync("Usuario/ListarDocumentos").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -179,14 +151,12 @@ public class PagoController : Controller
         return aTDocumentos;
     }
 
-
     public List<Cliente> listadoCliente()
     {
         List<Cliente> aClientes = new List<Cliente>();
         try
         {
-            string url = $"{_baseUri}/Cliente/listaClientes";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync("Cliente/listaClientes").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -200,14 +170,12 @@ public class PagoController : Controller
         return aClientes;
     }
 
-
     public List<PayOpts> ListadoPayOpts()
     {
         List<PayOpts> aPayOpts = new List<PayOpts>();
         try
         {
-            string url = $"{_baseUri}/Pago/ObtenerTiposDePago";
-            HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+            HttpResponseMessage response = _httpClient.GetAsync("Pago/ObtenerTiposDePago").Result;
             if (response.IsSuccessStatusCode)
             {
                 var data = response.Content.ReadAsStringAsync().Result;
@@ -221,21 +189,18 @@ public class PagoController : Controller
         return aPayOpts;
     }
 
-
     public IActionResult PagosRecepcionista()
     {
-        var pagos = listadoPagosGeneral(); 
-        return View(pagos); 
+        var pagos = listadoPagosGeneral();
+        return View(pagos);
     }
 
-    // Acción para mostrar los pagos del cliente logueado
     public IActionResult PagosCliente()
     {
         long token = long.Parse(HttpContext.Session.GetString("token"));
         var pagos = listadoPagosPorCliente(token);
         return View(pagos);
     }
-
 
     public IActionResult DetallePago(long id)
     {
@@ -246,7 +211,6 @@ public class PagoController : Controller
         return View(ObtenerPagoPorId(id));
     }
 
-    
     public IActionResult DetallePagoPDF(long id)
     {
         String hoy = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -258,7 +222,6 @@ public class PagoController : Controller
         };
     }
 
-    
     public IActionResult Crear()
     {
         ViewBag.tipoPagos = new SelectList(ListadoPayOpts(), "ide_pay", "nom_pay");
@@ -271,7 +234,7 @@ public class PagoController : Controller
     {
         obj.HoraPago = DateTime.Now;
         obj.IdCliente = int.Parse(HttpContext.Session.GetString("token"));
-        obj.MontoPago = 30.00m; 
+        obj.MontoPago = 30.00m;
 
         if (!ModelState.IsValid)
         {
@@ -283,23 +246,20 @@ public class PagoController : Controller
         var json = JsonConvert.SerializeObject(obj);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-      
-        var idUsuario = obj.IdCliente; 
-        var responseC = await _httpClient.PostAsync($"{_baseUri}/Pago/AgregarPago/{idUsuario}", content);
+        var idUsuario = obj.IdCliente;
+        var responseC = await _httpClient.PostAsync($"Pago/AgregarPago/{idUsuario}", content);
 
         if (responseC.IsSuccessStatusCode)
         {
             ViewBag.mensaje = "Pago registrado correctamente..!!!";
 
-         
             var idPagoStr = await responseC.Content.ReadAsStringAsync();
-            long IdPago = long.Parse(idPagoStr); 
+            long IdPago = long.Parse(idPagoStr);
 
             return RedirectToAction("nuevaCita", "Cita", new { PagoId = IdPago });
         }
         else
         {
-           
             ViewBag.mensaje = $"Error al registrar el pago. Código: {responseC.StatusCode}";
             ViewBag.tipoPagos = new SelectList(ListadoPayOpts(), "ide_pay", "nom_pay");
             ViewBag.clientes = new SelectList(listadoCliente(), "IdCliente", "NombreUsuario");
@@ -313,12 +273,9 @@ public class PagoController : Controller
     {
         try
         {
-            // Obtener el ID del cliente desde la sesión
             long token = long.Parse(HttpContext.Session.GetString("token"));
 
-            // Llamar al endpoint de la API para eliminar el pago
-            string url = $"{_baseUri}/Pago/EliminarPago/{id}";
-            var response = _httpClient.DeleteAsync(url).Result;
+            var response = _httpClient.DeleteAsync($"Pago/EliminarPago/{id}").Result;
 
             if (response.IsSuccessStatusCode)
             {
@@ -340,9 +297,6 @@ public class PagoController : Controller
 
         return RedirectToAction(nameof(PagosCliente));
     }
-
-
-
 
     public IActionResult Index()
     {

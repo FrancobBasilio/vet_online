@@ -7,13 +7,11 @@ namespace VeterinariaWebApp.Controllers;
 
 public class VeterinarioController : Controller
 {
-    private readonly Uri _baseUri = new("https://localhost:7054/api");
     private readonly HttpClient _httpClient;
 
-    public VeterinarioController()
+    public VeterinarioController(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = _baseUri;
+        _httpClient = httpClientFactory.CreateClient("ClinicaAPI");
     }
 
     // ==================== DASHBOARD ====================
@@ -30,8 +28,7 @@ public class VeterinarioController : Controller
         VeterinarioStats stats = new VeterinarioStats();
         try
         {
-            string url = $"{_baseUri}/Veterinario/estadisticasVeterinario/{veterinarioId}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync($"Veterinario/estadisticasVeterinario/{veterinarioId}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -47,8 +44,7 @@ public class VeterinarioController : Controller
         var veterinario = new Veterinario();
         try
         {
-            string url = $"{_baseUri}/Veterinario/buscarVeterinario/{veterinarioId}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync($"Veterinario/buscarVeterinario/{veterinarioId}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -85,14 +81,12 @@ public class VeterinarioController : Controller
 
     // ==================== CITAS ====================
 
-    // Método auxiliar para obtener citas
     public async Task<List<CitaVeterinario>> ArregloCitaVeterinario(long ide_usr)
     {
         List<CitaVeterinario> aCitaVeterinario = new();
         try
         {
-            string url = $"{_baseUri}/Veterinario/listaCitasPorVeterinario/{ide_usr}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync($"Veterinario/listaCitasPorVeterinario/{ide_usr}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -106,7 +100,6 @@ public class VeterinarioController : Controller
         return aCitaVeterinario;
     }
 
-    // GET: Lista de citas del veterinario
     [HttpGet]
     public async Task<IActionResult> listaCitaPorVeterinarios()
     {
@@ -120,7 +113,6 @@ public class VeterinarioController : Controller
         return View(citas);
     }
 
-    // GET: Iniciar atención de cita (cambiar estado a "En Atención")
     [HttpGet]
     public async Task<IActionResult> IniciarAtencion(long id)
     {
@@ -132,8 +124,7 @@ public class VeterinarioController : Controller
 
         try
         {
-            // Cambiar estado a "En Atención" (E)
-            var response = await _httpClient.PutAsync($"{_baseUri}/Cita/actualizarEstado/{id}?estado=E", null);
+            var response = await _httpClient.PutAsync($"Cita/actualizarEstado/{id}?estado=E", null);
 
             if (response.IsSuccessStatusCode)
             {
@@ -153,7 +144,6 @@ public class VeterinarioController : Controller
         return RedirectToAction("listaCitaPorVeterinarios");
     }
 
-    // GET: Formulario de atención médica
     [HttpGet]
     public async Task<IActionResult> AtenderCita(long id)
     {
@@ -163,7 +153,6 @@ public class VeterinarioController : Controller
             return RedirectToAction("Index", "Login");
         }
 
-        // Obtener datos de la cita
         var citas = await ArregloCitaVeterinario(veterinarioId.Value);
         var cita = citas.FirstOrDefault(c => c.ide_cit == id);
 
@@ -173,14 +162,12 @@ public class VeterinarioController : Controller
             return RedirectToAction("listaCitaPorVeterinarios");
         }
 
-        // Verificar que la cita esté en estado "En Atención"
         if (cita.est_cit != "E")
         {
             TempData["Error"] = "Esta cita no está en proceso de atención.";
             return RedirectToAction("listaCitaPorVeterinarios");
         }
 
-        // Crear el ViewModel
         var viewModel = new AtencionCitaViewModel
         {
             IdCita = cita.ide_cit,
@@ -198,7 +185,6 @@ public class VeterinarioController : Controller
         return View(viewModel);
     }
 
-    // POST: Finalizar atención (guardar diagnóstico y cambiar estado a "Atendida")
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> FinalizarAtencion(AtencionCitaViewModel model)
@@ -209,12 +195,10 @@ public class VeterinarioController : Controller
             return RedirectToAction("Index", "Login");
         }
 
-        // Validar solo los campos obligatorios manualmente
         if (string.IsNullOrWhiteSpace(model.Diagnostico) || string.IsNullOrWhiteSpace(model.Tratamiento))
         {
             TempData["Error"] = "Debe completar el diagnóstico y tratamiento.";
 
-            // Recargar datos de la cita para mostrar la vista correctamente
             var citas = await ArregloCitaVeterinario(veterinarioId.Value);
             var cita = citas.FirstOrDefault(c => c.ide_cit == model.IdCita);
             if (cita != null)
@@ -234,7 +218,6 @@ public class VeterinarioController : Controller
 
         try
         {
-            // 1. Guardar historial médico
             var historialDto = new
             {
                 IdCita = model.IdCita,
@@ -251,7 +234,7 @@ public class VeterinarioController : Controller
                 "application/json"
             );
 
-            var historialResponse = await _httpClient.PostAsync($"{_baseUri}/Cita/agregarHistorial", jsonContent);
+            var historialResponse = await _httpClient.PostAsync("Cita/agregarHistorial", jsonContent);
 
             if (!historialResponse.IsSuccessStatusCode)
             {
@@ -259,8 +242,7 @@ public class VeterinarioController : Controller
                 return RedirectToAction("AtenderCita", new { id = model.IdCita });
             }
 
-            // 2. Cambiar estado a "Atendida"
-            var estadoResponse = await _httpClient.PutAsync($"{_baseUri}/Cita/actualizarEstado/{model.IdCita}?estado=A", null);
+            var estadoResponse = await _httpClient.PutAsync($"Cita/actualizarEstado/{model.IdCita}?estado=A", null);
 
             if (estadoResponse.IsSuccessStatusCode)
             {
@@ -280,14 +262,13 @@ public class VeterinarioController : Controller
         }
     }
 
-    // POST: Cancelar atención (volver a estado Pendiente) - AJAX
     [HttpPost]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> CancelarAtencion(long id)
     {
         try
         {
-            var response = await _httpClient.PutAsync($"{_baseUri}/Cita/actualizarEstado/{id}?estado=P", null);
+            var response = await _httpClient.PutAsync($"Cita/actualizarEstado/{id}?estado=P", null);
 
             if (response.IsSuccessStatusCode)
             {
@@ -304,7 +285,6 @@ public class VeterinarioController : Controller
         }
     }
 
-    // GET: Ver detalle de cita atendida
     [HttpGet]
     public async Task<IActionResult> DetalleCitaAtendida(long id)
     {
@@ -328,14 +308,12 @@ public class VeterinarioController : Controller
 
     // ==================== MASCOTAS ====================
 
-    // Método auxiliar para obtener mascotas (vista simple)
     public async Task<List<MascotaPorVeterinario>> ArregloMascotaPorVeterinario(long ide_usr)
     {
         List<MascotaPorVeterinario> aMascotaVeterinario = new();
         try
         {
-            string url = $"{_baseUri}/Veterinario/listaMascotasPorVeterinario/{ide_usr}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync($"Veterinario/listaMascotasPorVeterinario/{ide_usr}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -349,14 +327,12 @@ public class VeterinarioController : Controller
         return aMascotaVeterinario;
     }
 
-    // Método auxiliar para obtener mascotas atendidas CON HISTORIAL
     public async Task<List<MascotaAtendida>> ArregloMascotasAtendidasConHistorial(long ide_usr)
     {
         List<MascotaAtendida> lista = new();
         try
         {
-            string url = $"{_baseUri}/Veterinario/listaMascotasAtendidasConHistorial/{ide_usr}";
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync($"Veterinario/listaMascotasAtendidasConHistorial/{ide_usr}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -370,7 +346,6 @@ public class VeterinarioController : Controller
         return lista;
     }
 
-    // GET: Lista de mascotas atendidas (vista mejorada con historial)
     [HttpGet]
     public async Task<IActionResult> listaMascotaPorVeterinarios()
     {
@@ -384,7 +359,6 @@ public class VeterinarioController : Controller
         return View("listaMascotaAtendidasConHistorial", mascotas);
     }
 
-    // GET: Generar PDF de una mascota atendida específica
     [HttpGet]
     public async Task<IActionResult> GenerarPDFMascotaAtendida(long idCita)
     {
@@ -413,7 +387,6 @@ public class VeterinarioController : Controller
         };
     }
 
-    // GET: Generar PDF de mascotas atendidas (lista general - legacy)
     [HttpGet]
     public async Task<IActionResult> GenerarPDFMascotasAtendidas()
     {

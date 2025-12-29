@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-//  Servicios de sesión
+// Servicios de sesión
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -15,10 +15,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-//  Registrar HttpClient con la URL base de tu API
+// HttpClient CON URL DINÁMICA (local o Azure)
+var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7054/api/";
 builder.Services.AddHttpClient("ClinicaAPI", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7054/api/");
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 var app = builder.Build();
@@ -35,7 +37,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-//  Middleware de sesión (DEBE estar antes de MapControllerRoute)
+// Middleware de sesión
 app.UseSession();
 
 app.MapControllerRoute(
@@ -43,7 +45,27 @@ app.MapControllerRoute(
     pattern: "{controller=Login}/{action=Index}/{id?}"
 );
 
-// Configuración de Rotativa para generar PDFs
-RotativaConfiguration.Setup(app.Environment.WebRootPath, "../Rotativa");
+//   ROTATIVA MEJORADA
+try
+{
+    var rotativaPath = app.Environment.IsDevelopment()
+        ? Path.Combine(app.Environment.ContentRootPath, "Rotativa")  // Local
+        : Path.Combine(app.Environment.ContentRootPath, "Rotativa"); // Azure
+
+    // Verificar que la ruta existe
+    if (Directory.Exists(rotativaPath))
+    {
+        RotativaConfiguration.Setup(app.Environment.WebRootPath, rotativaPath);
+        app.Logger.LogInformation($"Rotativa configurado en: {rotativaPath}");
+    }
+    else
+    {
+        app.Logger.LogWarning($"Carpeta Rotativa no encontrada en: {rotativaPath}");
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Error al configurar Rotativa");
+}
 
 app.Run();

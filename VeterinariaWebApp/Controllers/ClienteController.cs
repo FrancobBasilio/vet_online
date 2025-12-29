@@ -27,7 +27,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync("/api/Usuario/ListarDocumentos");
+                var response = await client.GetAsync("Usuario/ListarDocumentos");
                 if (response.IsSuccessStatusCode)
                 {
                     var data = await response.Content.ReadAsStringAsync();
@@ -43,7 +43,7 @@ namespace VeterinariaWebApp.Controllers
             try
             {
                 var client = GetClient();
-                var response = await client.GetAsync("/api/Cliente/listaClientesBackend");
+                var response = await client.GetAsync("Cliente/listaClientesBackend");
                 if (response.IsSuccessStatusCode)
                 {
                     var data = await response.Content.ReadAsStringAsync();
@@ -142,7 +142,7 @@ namespace VeterinariaWebApp.Controllers
             var client = GetClient();
             var json = JsonConvert.SerializeObject(clienteActualizar);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PutAsync("/api/Cliente/actualizarCliente", content);
+            var response = await client.PutAsync("Cliente/actualizarCliente", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -163,7 +163,7 @@ namespace VeterinariaWebApp.Controllers
         public async Task<List<CitaCliente>> aCitaCliente(long ide_usr)
         {
             var client = GetClient();
-            var response = await client.GetAsync($"/api/Cliente/listaCitasPorCliente/{ide_usr}");
+            var response = await client.GetAsync($"Cliente/listaCitasPorCliente/{ide_usr}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -175,7 +175,7 @@ namespace VeterinariaWebApp.Controllers
         public async Task<Cliente> ObtenerClientePorId(long id)
         {
             var client = GetClient();
-            var response = await client.GetAsync($"/api/Cliente/buscarCliente/{id}");
+            var response = await client.GetAsync($"Cliente/buscarCliente/{id}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -227,7 +227,7 @@ namespace VeterinariaWebApp.Controllers
                 return Content("ID del cliente no recibido o inválido");
 
             var client = GetClient();
-            var response = await client.GetAsync($"/api/Cliente/listarMascotas/{ide_usr}");
+            var response = await client.GetAsync($"Cliente/listarMascotas/{ide_usr}");
             if (response.IsSuccessStatusCode)
             {
                 var data = await response.Content.ReadAsStringAsync();
@@ -274,7 +274,7 @@ namespace VeterinariaWebApp.Controllers
             var json = JsonConvert.SerializeObject(modelo);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync($"/api/Cliente/agregarMascota/{idCliente.Value}", content);
+            var response = await client.PostAsync($"Cliente/agregarMascota/{idCliente.Value}", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -300,7 +300,7 @@ namespace VeterinariaWebApp.Controllers
                 return RedirectToAction("Index", "Login");
 
             var client = GetClient();
-            var response = await client.GetAsync($"/api/Cliente/listarMascotas/{idCliente.Value}");
+            var response = await client.GetAsync($"Cliente/listarMascotas/{idCliente.Value}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -322,7 +322,7 @@ namespace VeterinariaWebApp.Controllers
         public async Task<IActionResult> ActualizarMascota(long id)
         {
             var client = GetClient();
-            var response = await client.GetAsync($"/api/Cliente/listarMascotas/{HttpContext.Session.GetInt32("ClienteId")}");
+            var response = await client.GetAsync($"Cliente/listarMascotas/{HttpContext.Session.GetInt32("ClienteId")}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -360,7 +360,7 @@ namespace VeterinariaWebApp.Controllers
             var json = JsonConvert.SerializeObject(modelo);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await client.PutAsync($"/api/Cliente/actualizarMascota", content);
+            var response = await client.PutAsync($"Cliente/actualizarMascota", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -381,7 +381,7 @@ namespace VeterinariaWebApp.Controllers
         public async Task<IActionResult> EliminarMascota(long id, bool confirmar = false)
         {
             var client = GetClient();
-            var url = $"/api/Cliente/eliminarMascota/{id}?confirmar={confirmar.ToString().ToLower()}";
+            var url = $"Cliente/eliminarMascota/{id}?confirmar={confirmar.ToString().ToLower()}";
             var response = await client.DeleteAsync(url);
 
             if (response.IsSuccessStatusCode)

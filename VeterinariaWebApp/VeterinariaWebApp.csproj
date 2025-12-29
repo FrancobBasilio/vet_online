@@ -23,4 +23,11 @@
       <Folder Include="Rotativa\" />
     </ItemGroup>
 
+
+	<ItemGroup>
+		<None Include="Rotativa\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
 </Project>

@@ -13,16 +13,12 @@ namespace VeterinariaWebApp.Controllers
 {
     public class RecepcionistaController : Controller
     {
-        private readonly Uri _baseUri = new("https://localhost:7054/api");
         private readonly HttpClient _httpClient;
 
-        public RecepcionistaController()
+        public RecepcionistaController(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = _baseUri;
+            _httpClient = httpClientFactory.CreateClient("ClinicaAPI");
         }
-
-
 
         public async Task<IActionResult> Index()
         {
@@ -39,12 +35,11 @@ namespace VeterinariaWebApp.Controllers
             return View();
         }
 
-
         private async Task<int> ObtenerConteoCitas(string estado, bool soloVencidas = false)
         {
             var url = soloVencidas
-                ? $"{_baseUri}/Cita/listaCitasVencidas"
-                : $"{_baseUri}/Cita/listaCitasPorEstado?estado={estado}";
+                ? "Cita/listaCitasVencidas"
+                : $"Cita/listaCitasPorEstado?estado={estado}";
 
             var response = await _httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
@@ -56,17 +51,12 @@ namespace VeterinariaWebApp.Controllers
             return 0;
         }
 
-
-
-
-
         public List<Veterinario> ArregloVeterinarios()
         {
             List<Veterinario> aVeterinarios = new List<Veterinario>();
             try
             {
-                string url = $"{_baseUri}/Veterinario/listaVeterinarios";
-                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+                HttpResponseMessage response = _httpClient.GetAsync("Veterinario/listaVeterinarios").Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var data = response.Content.ReadAsStringAsync().Result;
@@ -80,14 +70,12 @@ namespace VeterinariaWebApp.Controllers
             return aVeterinarios;
         }
 
-      
         public List<Cliente> ArregloClientes()
         {
             List<Cliente> aClientes = new List<Cliente>();
             try
             {
-                string url = $"{_baseUri}/Cliente/listaClientes";
-                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+                HttpResponseMessage response = _httpClient.GetAsync("Cliente/listaClientes").Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var data = response.Content.ReadAsStringAsync().Result;
@@ -106,8 +94,7 @@ namespace VeterinariaWebApp.Controllers
             List<Especialidad> aEspecialidad = new List<Especialidad>();
             try
             {
-                string url = $"{_baseUri}/Veterinario/listarEspecialidad";
-                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+                HttpResponseMessage response = _httpClient.GetAsync("Veterinario/listarEspecialidad").Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var data = response.Content.ReadAsStringAsync().Result;
@@ -126,8 +113,7 @@ namespace VeterinariaWebApp.Controllers
             List<UserDoc> aTDocumentos = new List<UserDoc>();
             try
             {
-                string url = $"{_baseUri}/Usuario/ListarDocumentos";
-                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
+                HttpResponseMessage response = _httpClient.GetAsync("Usuario/ListarDocumentos").Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var data = response.Content.ReadAsStringAsync().Result;
@@ -146,8 +132,7 @@ namespace VeterinariaWebApp.Controllers
             StringContent content = new StringContent(JsonConvert.SerializeObject(veterinario), Encoding.UTF8, "application/json");
             try
             {
-                string url = $"{_baseUri}/Veterinario/nuevoVeterinario";
-                HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+                HttpResponseMessage response = _httpClient.PostAsync("Veterinario/nuevoVeterinario", content).Result;
                 return response.Content.ReadAsStringAsync().Result;
             }
             catch (Exception ex)
@@ -162,8 +147,7 @@ namespace VeterinariaWebApp.Controllers
             StringContent content = new StringContent(JsonConvert.SerializeObject(cliente), Encoding.UTF8, "application/json");
             try
             {
-                string url = $"{_baseUri}/Cliente/nuevoCliente";
-                HttpResponseMessage response = _httpClient.PostAsync(url, content).Result;
+                HttpResponseMessage response = _httpClient.PostAsync("Cliente/nuevoCliente", content).Result;
                 return response.Content.ReadAsStringAsync().Result;
             }
             catch (Exception ex)
@@ -197,8 +181,8 @@ namespace VeterinariaWebApp.Controllers
 
         public IActionResult listarVeterinarios()
         {
-            var veterinarios = ArregloVeterinarios(); 
-            return View(veterinarios); 
+            var veterinarios = ArregloVeterinarios();
+            return View(veterinarios);
         }
 
         public IActionResult listarVeterinariosPDF()
@@ -234,11 +218,9 @@ namespace VeterinariaWebApp.Controllers
 
         public IActionResult listarClientes()
         {
-            var clientes = ArregloClientes(); 
+            var clientes = ArregloClientes();
             return View(clientes);
         }
-
-
 
         public IActionResult listarClientesPDF()
         {
@@ -250,7 +232,5 @@ namespace VeterinariaWebApp.Controllers
                 PageSize = Size.A4
             };
         }
-
-   
     }
 }
